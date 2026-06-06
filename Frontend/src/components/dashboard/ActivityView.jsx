@@ -70,17 +70,19 @@ export default function ActivityView() {
 
     async function seedFromBackend() {
       try {
-        const [invRes, vendorRes, rfqRes, poRes] = await Promise.all([
+        const [invRes, vendorRes, rfqRes, poRes, quoRes] = await Promise.all([
           fetchApi('/invoices'),
           fetchApi('/vendors'),
           fetchApi('/rfqs'),
           fetchApi('/purchase-orders'),
+          fetchApi('/quotations'),
         ]);
 
         const invoices = invRes?.invoices || [];
         const vendors = vendorRes?.vendors || [];
         const rfqs = rfqRes?.rfqs || [];
         const pos = poRes?.purchaseOrders || [];
+        const quotations = quoRes?.quotations || [];
 
         // Only seed if activity log is empty
         if (activities.length === 0) {
@@ -105,6 +107,12 @@ export default function ActivityView() {
           pos.slice(0, 3).forEach(po => {
             const st = po.status === 'completed' ? 'success' : po.status === 'draft' ? 'pending' : 'info';
             addActivity('po', `Purchase Order ${po.status} — $${(po.total || 0).toLocaleString()}`, st);
+          });
+
+          // Seed from Quotations
+          quotations.slice(0, 3).forEach(q => {
+            const st = q.status === 'awarded' ? 'success' : q.status === 'pending_approval' ? 'pending' : 'info';
+            addActivity('approval', `Quotation ${st} — ${q.vendor?.name || q.vendorName || q.id}`, st === 'success' ? 'success' : 'pending');
           });
         }
       } catch (err) {

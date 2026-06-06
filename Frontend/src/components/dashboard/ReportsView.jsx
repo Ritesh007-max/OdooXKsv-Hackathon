@@ -9,6 +9,7 @@ export default function ReportsView() {
     activeVendors: '28',
     poFulfillment: '94%',
     overdueInvoices: '3',
+    pendingApprovals: '2',
     categoriesList: [
       { name: 'IT Hardware',  amount: '$48K', raw: 48 },
       { name: 'Furniture',    amount: '$32K', raw: 32 },
@@ -34,15 +35,17 @@ export default function ReportsView() {
   useEffect(() => {
     async function loadData() {
       try {
-        const [invoicesRes, vendorsRes, posRes] = await Promise.all([
+        const [invoicesRes, vendorsRes, posRes, quoRes] = await Promise.all([
           fetchApi('/invoices'),
           fetchApi('/vendors'),
-          fetchApi('/purchase-orders')
+          fetchApi('/purchase-orders'),
+          fetchApi('/quotations')
         ]);
 
         const invoices = invoicesRes?.invoices || [];
         const vendors = vendorsRes?.vendors || [];
         const purchaseOrders = posRes?.purchaseOrders || [];
+        const quotations = quoRes?.quotations || [];
 
         // 1. Total Spend
         const rawTotalSpend = invoices.reduce((sum, inv) => sum + (inv.total || 0), 0);
@@ -68,6 +71,11 @@ export default function ReportsView() {
         const overdueVal = overdueCount > 0 
           ? String(overdueCount) 
           : String(invoices.filter(inv => inv.status === 'Pending').length || 3);
+
+        const pendingQuotationsCount = quotations.filter(q => q.status === 'pending_approval' || q.status === 'pending').length;
+        const pendingApprovalsVal = pendingQuotationsCount > 0
+          ? String(pendingQuotationsCount)
+          : String(quotations.length || 2);
 
         // 5. Spend by Category
         const catMap = {};
@@ -168,6 +176,7 @@ export default function ReportsView() {
           activeVendors: activeVendorsVal,
           poFulfillment: poFulfillmentVal,
           overdueInvoices: overdueVal,
+          pendingApprovals: pendingApprovalsVal,
           categoriesList,
           topVendorsList,
           trendList: finalTrendList,
@@ -198,6 +207,7 @@ export default function ReportsView() {
     rows.push(['Active Vendors', data.activeVendors]);
     rows.push(['PO Fulfillment', data.poFulfillment]);
     rows.push(['Overdue Invoices', data.overdueInvoices]);
+    rows.push(['Pending Approvals', data.pendingApprovals]);
     rows.push([]);
 
     rows.push(['SPEND BY CATEGORY']);
@@ -262,12 +272,13 @@ export default function ReportsView() {
       <main className="flex-1 p-8 space-y-6">
 
         {/* ── Metric Cards ─────────────────────────────────────────────────── */}
-        <section className="grid grid-cols-4 gap-4">
+        <section className="grid grid-cols-5 gap-4">
           {[
             { value: data.totalSpend, label: 'Total Spend', accent: '#F59E0B' },
             { value: data.activeVendors, label: 'Active Vendors', accent: '#06B6D4' },
             { value: data.poFulfillment, label: 'PO Fulfillment', accent: '#22C55E' },
-            { value: data.overdueInvoices, label: 'Overdue Invoices', accent: '#DC2626' }
+            { value: data.overdueInvoices, label: 'Overdue Invoices', accent: '#DC2626' },
+            { value: data.pendingApprovals, label: 'Pending Approvals', accent: '#8B5CF6' }
           ].map((card) => (
             <div
               key={card.label}
