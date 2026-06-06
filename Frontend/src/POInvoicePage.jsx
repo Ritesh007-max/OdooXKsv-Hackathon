@@ -459,7 +459,7 @@ export default function POInvoicePage() {
   const currentStatusStyle = getStatusStyle(currentInvoiceData?.status || "Draft");
 
   return (
-    <div className="flex-1 bg-[#F3F4F6] text-[#111111] flex flex-col font-deck-body select-none overflow-hidden">
+    <div className="flex-1 bg-white text-[#111111] flex flex-col font-deck-body select-none overflow-hidden">
 
         {/* Role Bar & Utility Header (no-print) */}
         <header className="h-12 bg-white border-b border-[#E5E7EB] flex items-center justify-between px-6 text-xs no-print">
@@ -509,7 +509,7 @@ export default function POInvoicePage() {
                   placeholder="Search invoice, PO, vendor..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="dd-input w-full pl-10"
+                  className="dd-input w-full !pl-10"
                 />
                 <svg className="w-4 h-4 text-[#888888] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -607,7 +607,7 @@ export default function POInvoicePage() {
           </section>
 
           {/* 3. Right Panel: Active PO & Invoice Sheet */}
-          <section className="flex-1 min-w-0 overflow-y-auto bg-[#F3F4F6] p-6 md:p-8 print-invoice-sheet">
+          <section className="flex-1 min-w-0 overflow-y-auto bg-white p-6 md:p-8 print-invoice-sheet">
 
             {/* Top breadcrumb & metadata (no-print) */}
             <div className="flex items-center justify-between text-xs text-[#6B7280] mb-4 no-print font-deck-code">
