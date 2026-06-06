@@ -76,8 +76,11 @@ async function addInvoice(data) {
   const discount = Math.max(0, data.discount || 0);
   const total = Math.max(0, amount + tax - discount);
   
+  const mongoose = require("mongoose");
+  const invoiceId = data.id || data.invoiceId || `INV-${new mongoose.Types.ObjectId().toString().substring(0, 8).toUpperCase()}`;
+
   const invoice = new Invoice({
-    invoiceId: data.id || data.invoiceId,
+    invoiceId,
     poId: data.poId || "Draft PO",
     amount,
     tax,
