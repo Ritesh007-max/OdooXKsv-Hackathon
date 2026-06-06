@@ -1,14 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Button from '../ui/Button';
+import { fetchApi } from '../../api';
 
 const RFQVendors = ({ assignedVendors, setAssignedVendors }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
-  // Fetch vendors from localStorage to simulate a database query
-  const allVendors = (() => {
-    const saved = localStorage.getItem('vendorBridge_vendors');
-    return saved ? JSON.parse(saved) : [];
-  })();
+  const [allVendors, setAllVendors] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (isModalOpen) {
+      setLoading(true);
+      fetchApi('/dashboard/get-vendors')
+        .then((data) => {
+          const mapped = (data.vendors || []).map((v) => ({
+            id: v._id,
+            name: v.name,
+            category: v.category,
+            status: v.status || 'Active'
+          }));
+          setAllVendors(mapped);
+          setLoading(false);
+        })
+        .catch((err) => {
+          console.error('Failed to fetch vendors:', err);
+          setLoading(false);
+        });
+    }
+  }, [isModalOpen]);
 
   const handleAddVendor = (vendor) => {
     if (!assignedVendors.find(v => v.id === vendor.id)) {
@@ -45,7 +63,9 @@ const RFQVendors = ({ assignedVendors, setAssignedVendors }) => {
           <div className="bg-white rounded-lg shadow-lg w-[400px] p-6">
             <h2 className="text-headline font-sans font-bold mb-4">Select Vendor</h2>
             <div className="max-h-[300px] overflow-y-auto flex flex-col gap-2">
-              {allVendors.length > 0 ? (
+              {loading ? (
+                <div className="text-gray-500 font-sans text-center py-4">Loading vendors...</div>
+              ) : allVendors.length > 0 ? (
                 allVendors.map(vendor => (
                   <button 
                     key={vendor.id}

@@ -15,6 +15,8 @@ const {
   deleteVendor,
   addInvoice,
   updateInvoice,
+  addRfq,
+  updateRfq,
 } = require("../controllers/dashboardController");
 
 const router = express.Router();
@@ -34,5 +36,7 @@ router.put("/update-vendor/:id", updateVendor);
 router.delete("/delete-vendor/:id", deleteVendor);
 router.post("/add-invoice", addInvoice);
 router.put("/update-invoice/:id", updateInvoice);
+router.post("/add-rfq", addRfq);
+router.put("/update-rfq/:id", updateRfq);
 
 module.exports = router;
