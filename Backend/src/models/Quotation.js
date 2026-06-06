@@ -2,16 +2,14 @@ const mongoose = require("mongoose");
 
 const quotationSchema = new mongoose.Schema(
   {
-    rfqId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "RFQ",
-      required: true,
-    },
-    vendorId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Vendor",
-      required: true,
-    },
+  rfqId: {
+    type: mongoose.Schema.Types.Mixed,
+    required: true,
+  },
+  vendorId: {
+    type: mongoose.Schema.Types.Mixed,
+    required: true,
+  },
     price: {
       type: Number,
       required: true,

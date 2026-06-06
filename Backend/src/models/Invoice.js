@@ -2,11 +2,10 @@ const mongoose = require("mongoose");
 
 const invoiceSchema = new mongoose.Schema(
   {
-    poId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "PurchaseOrder",
-      required: true,
-    },
+  poId: {
+    type: mongoose.Schema.Types.Mixed,
+    required: true,
+  },
     amount: {
       type: Number,
       required: true,
