@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 
 // Initial Mock Invoices Data
 const initialInvoices = [
@@ -151,11 +151,29 @@ export default function POInvoicePage() {
   const roles = ["Procurement Officer", "Vendor", "Manager / Approver", "Admin"];
   const [currentRole, setCurrentRole] = useState("Admin");
 
-  // Invoices Master State
-  const [invoices, setInvoices] = useState(initialInvoices);
-  const [activeInvoiceId, setActiveInvoiceId] = useState("INV-2026-004");
+  // Invoices Master State — persisted to localStorage
+  const [invoices, setInvoices] = useState(() => {
+    try {
+      const saved = localStorage.getItem('vb_invoices');
+      return saved ? JSON.parse(saved) : initialInvoices;
+    } catch {
+      return initialInvoices;
+    }
+  });
+  const [activeInvoiceId, setActiveInvoiceId] = useState(() => {
+    return localStorage.getItem('vb_activeInvoiceId') || 'INV-2026-004';
+  });
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
+
+  // Persist invoices & active selection to localStorage
+  useEffect(() => {
+    try { localStorage.setItem('vb_invoices', JSON.stringify(invoices)); } catch {}
+  }, [invoices]);
+
+  useEffect(() => {
+    localStorage.setItem('vb_activeInvoiceId', activeInvoiceId);
+  }, [activeInvoiceId]);
 
   // Edit State
   const [isEditMode, setIsEditMode] = useState(false);
@@ -563,61 +581,10 @@ export default function POInvoicePage() {
   const currentStatusStyle = getStatusStyle(currentInvoiceData?.status || "Draft");
 
   return (
-    <div className="min-h-screen bg-[#F3F4F6] text-[#111111] flex font-deck-body select-none">
-
-      {/* 1. Left Sidebar (Persistent Navigation) */}
-      <aside className="w-56 bg-white border-r border-[#E5E7EB] flex flex-col justify-between shrink-0 no-print">
-        <div>
-          {/* Logo Brand Header */}
-          <div className="h-14 border-b border-[#E5E7EB] flex items-center px-4 gap-2">
-            <div className="w-6 h-6 rounded bg-[#F59E0B] flex items-center justify-center text-[#111111] font-deck-overline font-bold text-xs">
-              VB
-            </div>
-            <span className="font-deck-overline font-bold text-sm tracking-tight text-[#111111]">VendorBridge</span>
-          </div>
-
-          {/* Navigation List */}
-          <nav className="p-2 space-y-1">
-            {[
-              { name: "Dashboard" },
-              { name: "Vendors" },
-              { name: "RFQs" },
-              { name: "Quotations" },
-              { name: "Approvals" },
-              { name: "Purchase Orders" },
-              { name: "Invoices", active: true },
-              { name: "Reports" },
-              { name: "Activity" }
-            ].map((item, idx) => (
-              <button
-                key={idx}
-                className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-medium rounded-sm transition-all duration-100 ${item.active
-                    ? "bg-[rgba(245,158,11,0.1)] text-[#B45309] border border-[#F59E0B]/30 glow-amber"
-                    : "text-[#4B5563] hover:text-[#111111] hover:bg-[#F3F4F6]"
-                  }`}
-              >
-                {navIcons[item.name]}
-                <span className="font-deck-body-small">{item.name}</span>
-                {item.active && (
-                  <span className="ml-auto w-1.5 h-1.5 rounded-full bg-[#F59E0B]" />
-                )}
-              </button>
-            ))}
-          </nav>
-        </div>
-
-        {/* User Info & Quick Info */}
-        <div className="p-3 border-t border-[#E5E7EB] bg-[#F9FAFB] font-deck-caption text-[10px] text-[#6B7280]">
-          <div>ERP Status: ONLINE</div>
-          <div>Node: odoo-front-vb</div>
-        </div>
-      </aside>
-
-      {/* Main Container */}
-      <div className="flex-1 flex flex-col min-w-0">
+    <div className="flex-1 bg-[#F3F4F6] text-[#111111] flex flex-col font-deck-body select-none overflow-hidden">
 
         {/* Role Bar & Utility Header (no-print) */}
-        <header className="h-10 bg-white border-b border-[#E5E7EB] flex items-center justify-between px-4 text-xs no-print">
+        <header className="h-12 bg-white border-b border-[#E5E7EB] flex items-center justify-between px-6 text-xs no-print">
           <div className="flex items-center gap-2">
             <span className="text-[#6B7280] font-deck-caption">USER SESSION:</span>
             <span className="font-deck-code text-[#F59E0B]">Procurement_Officer_GSSoC</span>
@@ -655,9 +622,9 @@ export default function POInvoicePage() {
         <main className="flex-1 flex min-h-0">
 
           {/* 2. Middle Panel: Invoice Explorer (no-print) */}
-          <section className="w-80 bg-white border-r border-[#E5E7EB] flex flex-col no-print shrink-0">
+          <section className="w-84 bg-white border-r border-[#E5E7EB] flex flex-col no-print shrink-0">
             {/* Search and Filters */}
-            <div className="p-3 border-b border-[#E5E7EB] space-y-2.5">
+            <div className="p-4 border-b border-[#E5E7EB] space-y-3">
               <div className="relative flex items-center">
                 <input
                   type="text"
@@ -691,7 +658,7 @@ export default function POInvoicePage() {
 
             {/* Create Actions based on simulated role */}
             {(showAddInvoiceBtn || showAddPoBtn) && (
-              <div className="px-3 pb-3 border-b border-[#E5E7EB] flex gap-2">
+              <div className="px-4 py-3 border-b border-[#E5E7EB] flex gap-2">
                 {showAddInvoiceBtn && (
                   <button
                     onClick={handleCreateInvoice}
@@ -718,8 +685,8 @@ export default function POInvoicePage() {
             )}
 
             {/* Invoices List */}
-            <div className="flex-1 overflow-y-auto p-2 space-y-1.5">
-              <div className="font-deck-overline text-[#6B7280] px-2 py-1">
+            <div className="flex-1 overflow-y-auto p-3 space-y-2">
+              <div className="font-deck-overline text-[#6B7280] px-2 py-2">
                 Documents ({filteredInvoices.length})
               </div>
 
@@ -736,7 +703,7 @@ export default function POInvoicePage() {
                     <div
                       key={inv.id}
                       onClick={() => handleSelectInvoice(inv.id)}
-                      className={`p-3 rounded-sm border cursor-pointer transition-all duration-100 flex flex-col gap-1.5 ${isActive
+                      className={`p-4 rounded-sm border cursor-pointer transition-all duration-100 flex flex-col gap-2 ${isActive
                           ? 'bg-[#F9FAFB] border-[#F59E0B] glow-amber'
                           : 'bg-white border-[#E5E7EB] hover:bg-[#F9FAFB] hover:border-[#D1D5DB]'
                         }`}
@@ -762,10 +729,10 @@ export default function POInvoicePage() {
           </section>
 
           {/* 3. Right Panel: Active PO & Invoice Sheet */}
-          <section className="flex-1 flex flex-col min-w-0 overflow-y-auto bg-[#F3F4F6] p-4 md:p-6 print-invoice-sheet">
+          <section className="flex-1 min-w-0 overflow-y-auto bg-[#F3F4F6] p-6 md:p-8 print-invoice-sheet">
 
             {/* Top breadcrumb & metadata (no-print) */}
-            <div className="flex items-center justify-between text-xs text-[#6B7280] mb-2 no-print font-deck-code">
+            <div className="flex items-center justify-between text-xs text-[#6B7280] mb-4 no-print font-deck-code">
               <div>
                 <span>VendorBridge</span>
                 <span className="mx-1.5">/</span>
@@ -781,7 +748,7 @@ export default function POInvoicePage() {
             </div>
 
             {/* Core Header Card (White paper background style) */}
-            <div className="bg-white text-[#111111] border border-[#E5E7EB] rounded-sm p-5 mb-4 relative overflow-hidden dd-shadow-medium print-invoice-sheet">
+            <div className="bg-white text-[#111111] border border-[#E5E7EB] rounded-sm p-6 mb-5 relative dd-shadow-medium print-invoice-sheet">
               {/* Top border indicating status severity */}
               <div className={`absolute top-0 left-0 right-0 h-1 ${currentStatusStyle.dot}`} />
 
@@ -901,11 +868,11 @@ export default function POInvoicePage() {
                 </div>
               </div>
 
-              {/* Vendor & Invoice Metadata Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 pt-5 border-t border-[#E5E7EB]">
+              {/* Vendor & Invoice Metadata Grid — 3 columns */}
+              <div className="grid grid-cols-3 gap-6 mt-6 pt-5 border-t border-[#E5E7EB]">
 
                 {/* Left Column (Vendor & Doc Identifiers) */}
-                <div className="space-y-3">
+                <div className="space-y-4">
                   <div>
                     <label className="dd-label !text-[#666666]">
                       Vendor Name
@@ -942,79 +909,42 @@ export default function POInvoicePage() {
                     )}
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="dd-label !text-[#666666]">
-                        Invoice Number
-                      </label>
-                      <div className="font-deck-code text-xs text-[#111111] font-bold">
-                        {currentInvoiceData?.id}
-                      </div>
-                    </div>
-                    <div>
-                      <label className="dd-label !text-[#666666]">
-                        Purchase Order ID
-                      </label>
-                      {isEditMode ? (
-                        <input
-                          type="text"
-                          value={editedInvoice.poId}
-                          onChange={(e) => setEditedInvoice(prev => ({ ...prev, poId: e.target.value }))}
-                          className="dd-input !bg-white !text-[#111111] !border-[#CCCCCC] focus:!border-[#F59E0B] w-full font-deck-code !py-0.5"
-                        />
-                      ) : (
-                        <div className="font-deck-code text-xs text-[#111111]">
-                          {currentInvoiceData?.poId}
-                        </div>
-                      )}
-                    </div>
-                  </div>
                 </div>
 
-                {/* Right Column (Dates, Terms, Status) */}
-                <div className="space-y-3">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="dd-label !text-[#666666]">
-                        Invoice Date
-                      </label>
-                      {isEditMode ? (
-                        <input
-                          type="date"
-                          value={editedInvoice.dates.invoiceDate}
-                          onChange={(e) => handleInvoiceDateFieldChange('invoiceDate', e.target.value)}
-                          className="dd-input !bg-white !text-[#111111] !border-[#CCCCCC] focus:!border-[#F59E0B] w-full font-deck-code !py-0.5"
-                        />
-                      ) : (
-                        <div className="font-deck-code text-xs text-[#111111]">
-                          {currentInvoiceData?.dates.invoiceDate}
-                        </div>
-                      )}
-                    </div>
-
-                    <div>
-                      <label className="dd-label !text-[#666666]">
-                        Due Date
-                      </label>
-                      {isEditMode ? (
-                        <input
-                          type="date"
-                          value={editedInvoice.dates.dueDate}
-                          onChange={(e) => handleInvoiceDateFieldChange('dueDate', e.target.value)}
-                          className="dd-input !bg-white !text-[#111111] !border-[#CCCCCC] focus:!border-[#F59E0B] w-full font-deck-code !py-0.5"
-                        />
-                      ) : (
-                        <div className="font-deck-code text-xs text-[#111111]">
-                          {currentInvoiceData?.dates.dueDate}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
+                {/* Col 2 — Dates & Terms */}
+                <div className="space-y-4">
                   <div>
-                    <label className="dd-label !text-[#666666]">
-                      Payment Terms
-                    </label>
+                    <label className="dd-label !text-[#666666]">Invoice Date</label>
+                    {isEditMode ? (
+                      <input
+                        type="date"
+                        value={editedInvoice.dates.invoiceDate}
+                        onChange={(e) => handleInvoiceDateFieldChange('invoiceDate', e.target.value)}
+                        className="dd-input !bg-white !text-[#111111] !border-[#CCCCCC] focus:!border-[#F59E0B] w-full font-deck-code !py-0.5"
+                      />
+                    ) : (
+                      <div className="font-deck-code text-xs text-[#111111]">
+                        {currentInvoiceData?.dates.invoiceDate}
+                      </div>
+                    )}
+                  </div>
+                  <div>
+                    <label className="dd-label !text-[#666666]">Due Date</label>
+                    {isEditMode ? (
+                      <input
+                        type="date"
+                        value={editedInvoice.dates.dueDate}
+                        onChange={(e) => handleInvoiceDateFieldChange('dueDate', e.target.value)}
+                        className="dd-input !bg-white !text-[#111111] !border-[#CCCCCC] focus:!border-[#F59E0B] w-full font-deck-code !py-0.5"
+                      />
+                    ) : (
+                      <div className="font-deck-code text-xs text-[#111111]">
+                        {currentInvoiceData?.dates.dueDate}
+                      </div>
+                    )}
+                  </div>
+                  <div>
+                    <label className="dd-label !text-[#666666]">Payment Terms</label>
                     {isEditMode ? (
                       <select
                         value={editedInvoice.dates.paymentTerms}
@@ -1032,11 +962,35 @@ export default function POInvoicePage() {
                       </div>
                     )}
                   </div>
+                </div>
+
+                {/* Col 3 — IDs & Status */}
+                <div className="space-y-4">
+                  <div>
+                    <label className="dd-label !text-[#666666]">Invoice Number</label>
+                    <div className="font-deck-code text-xs text-[#111111] font-bold">
+                      {currentInvoiceData?.id}
+                    </div>
+                  </div>
 
                   <div>
-                    <label className="dd-label !text-[#666666]">
-                      Status
-                    </label>
+                    <label className="dd-label !text-[#666666]">Purchase Order ID</label>
+                    {isEditMode ? (
+                      <input
+                        type="text"
+                        value={editedInvoice.poId}
+                        onChange={(e) => setEditedInvoice(prev => ({ ...prev, poId: e.target.value }))}
+                        className="dd-input !bg-white !text-[#111111] !border-[#CCCCCC] focus:!border-[#F59E0B] w-full font-deck-code !py-0.5"
+                      />
+                    ) : (
+                      <div className="font-deck-code text-xs text-[#111111]">
+                        {currentInvoiceData?.poId}
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="dd-label !text-[#666666]">Status</label>
                     <div className="flex items-center gap-2 mt-1">
                       <span className={currentStatusStyle.badge}>
                         {currentInvoiceData?.status.toUpperCase()}
@@ -1281,7 +1235,6 @@ export default function POInvoicePage() {
           </section>
 
         </main>
-      </div>
 
     </div>
   );
