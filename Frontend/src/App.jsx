@@ -7,11 +7,12 @@ import RFQsView from './components/rfqs/RFQsView';
 import POInvoicePage from './POInvoicePage';
 import QuotationsModule from './components/quotations/QuotationsModule';
 import ApprovalWorkflowView from './components/approvals/ApprovalWorkflowView';
+import LandingPage from './components/landing/LandingPage';
 
 function App() {
   const [currentPath, setCurrentPath] = useState(() => {
     const saved = localStorage.getItem('vendorBridge_currentPath');
-    return saved || 'dashboard';
+    return saved || 'landing';
   });
   const [openVendorModal, setOpenVendorModal] = useState(false);
   const [rfqInitialMode, setRfqInitialMode] = useState(null);
@@ -41,6 +42,10 @@ function App() {
     setRfqInitialMode('create');
     setCurrentPath('rfqs');
   };
+
+  if (currentPath === 'landing') {
+    return <LandingPage onLogin={() => setCurrentPath('dashboard')} />;
+  }
 
   return (
     <div className="h-screen w-full flex flex-col bg-background text-gray-900 font-sans overflow-hidden">
