@@ -3,8 +3,10 @@ import Button from '../ui/Button';
 import QuotationCard from './QuotationCard';
 import ConfirmationModal from './ConfirmationModal';
 import { rfqDetails } from '../../mock/quotationData';
+import { useActivity } from '../../ActivityContext';
 
 const QuotationComparisonView = ({ quotations, onNavigate, onBack, onEditDraft, setSelectedApprovalQuotation }) => {
+  const { addActivity } = useActivity();
   const [isLoading, setIsLoading] = useState(true);
   const [selectedQuotationId, setSelectedQuotationId] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -31,6 +33,16 @@ const QuotationComparisonView = ({ quotations, onNavigate, onBack, onEditDraft, 
         setSelectedApprovalQuotation(selectedQuotationData);
       }
       setIsSuccess(true);
+      
+      // Save to localStorage for future Screen 8 integration
+      localStorage.setItem('vendorBridge_pendingApproval', JSON.stringify({
+        rfqId: rfqDetails.id,
+        selectedQuotationId: selectedQuotationId,
+        status: 'pending_approval',
+        timestamp: Date.now()
+      }));
+
+      addActivity('approval', `Quotation selected — ${selectedQuotationData?.vendorName} sent for approval`, 'success');
     }, 600);
   };
 

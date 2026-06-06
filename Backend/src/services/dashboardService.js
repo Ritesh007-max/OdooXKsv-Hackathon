@@ -56,7 +56,7 @@ async function getRecentInvoices(limit = 5) {
       path: "poId",
       select: "rfqId vendorId total status createdAt",
       populate: [
-        { path: "rfqId", select: "title product quantity status" },
+        { path: "rfqId", select: "title product quantity status category" },
         { path: "vendorId", select: "name category contact" },
       ],
     })
@@ -72,6 +72,7 @@ function getRecentPurchaseOrders(limit = 5) {
     .populate("vendorId", "name category contact")
     .lean();
 }
+
 
 module.exports = {
   getOverview,

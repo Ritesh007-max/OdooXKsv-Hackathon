@@ -5,9 +5,11 @@ import RFQVendors from './RFQVendors';
 import RFQAttachments from './RFQAttachments';
 import Button from '../ui/Button';
 import { fetchApi } from '../../api';
+import { useActivity } from '../../ActivityContext';
 import { FileText, Plus, Search, ArrowLeft, Edit, Calendar, Users, ShoppingBag } from 'lucide-react';
 
 const RFQsView = ({ initialMode, clearInitialMode }) => {
+  const { addActivity } = useActivity();
   const [viewMode, setViewMode] = useState('list'); // 'list' or 'form'
   const [editingRfq, setEditingRfq] = useState(null); // RFQ object being edited
   const [rfqs, setRfqs] = useState([]);
@@ -149,11 +151,13 @@ const RFQsView = ({ initialMode, clearInitialMode }) => {
           method: 'PUT',
           body: payload
         });
+        addActivity('rfq', `RFQ updated — ${payload.title}`, 'info');
       } else {
         await fetchApi('/rfqs', {
           method: 'POST',
           body: payload
         });
+        addActivity('rfq', `RFQ created — ${payload.title} (${status})`, status === 'open' ? 'success' : 'pending');
       }
       
       setViewMode('list');
