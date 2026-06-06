@@ -2,16 +2,14 @@ const mongoose = require("mongoose");
 
 const purchaseOrderSchema = new mongoose.Schema(
   {
-    rfqId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "RFQ",
-      required: true,
-    },
-    vendorId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Vendor",
-      required: true,
-    },
+  rfqId: {
+    type: mongoose.Schema.Types.Mixed,
+    required: true,
+  },
+  vendorId: {
+    type: mongoose.Schema.Types.Mixed,
+    required: true,
+  },
     total: {
       type: Number,
       required: true,
@@ -19,7 +17,14 @@ const purchaseOrderSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["draft", "issued", "completed", "cancelled"],
+      enum: [
+        "draft",
+        "pending_approval",
+        "approved",
+        "issued",
+        "completed",
+        "cancelled",
+      ],
       default: "draft",
     },
   },

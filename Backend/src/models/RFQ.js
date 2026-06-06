@@ -2,6 +2,9 @@ const mongoose = require("mongoose");
 
 const rfqSchema = new mongoose.Schema(
   {
+    _id: {
+      type: mongoose.Schema.Types.Mixed
+    },
     title: {
       type: String,
       required: true,
@@ -23,7 +26,7 @@ const rfqSchema = new mongoose.Schema(
     },
     vendors: [
       {
-        type: mongoose.Schema.Types.ObjectId,
+        type: mongoose.Schema.Types.Mixed,
         ref: "Vendor",
       },
     ],
@@ -33,7 +36,7 @@ const rfqSchema = new mongoose.Schema(
       default: "draft",
     },
     createdBy: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: mongoose.Schema.Types.Mixed,
       ref: "User",
       required: true,
     },
