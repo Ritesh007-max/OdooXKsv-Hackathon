@@ -1,102 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-
-// Initial Mock Invoices Data
-const initialInvoices = [
-  {
-    id: "INV-2026-001",
-    poId: "PO-2026-001",
-    vendor: {
-      name: "Apex Solutions Ltd.",
-      address: "45 Technology Park, Sector 4, Bangalore 560066",
-    },
-    items: [
-      { id: 1, name: "Mainboard V2.4 Prototype", qty: 5, unitPrice: 8500, tax: 18 },
-      { id: 2, name: "Centrifugal Cooling Fan 12V", qty: 12, unitPrice: 1200, tax: 12 }
-    ],
-    status: "Paid",
-    dates: {
-      invoiceDate: "2026-05-10",
-      dueDate: "2026-06-10",
-      paymentTerms: "Net 30"
-    },
-    discount: 1000,
-    logs: [
-      { timestamp: "2026-05-10 09:12:00", level: "INFO", user: "Procurement Officer", message: "Created draft invoice INV-2026-001" },
-      { timestamp: "2026-05-10 09:15:30", level: "INFO", user: "Procurement Officer", message: "Linked Purchase Order PO-2026-001" },
-      { timestamp: "2026-05-11 14:02:10", level: "INFO", user: "Manager", message: "Approved invoice & authorized payment release" },
-      { timestamp: "2026-05-12 10:30:00", level: "SUCCESS", user: "System", message: "Payment processed successfully. Status marked as Paid." }
-    ]
-  },
-  {
-    id: "INV-2026-002",
-    poId: "PO-2026-002",
-    vendor: {
-      name: "Global Metals Corp",
-      address: "88 Ironworks Blvd, Industrial Area, Pune 411028",
-    },
-    items: [
-      { id: 1, name: "Structural H-Beams 20ft", qty: 10, unitPrice: 15000, tax: 18 },
-      { id: 2, name: "Reinforcing Steel Bars (10-pack)", qty: 25, unitPrice: 4500, tax: 18 }
-    ],
-    status: "Pending",
-    dates: {
-      invoiceDate: "2026-05-25",
-      dueDate: "2026-06-25",
-      paymentTerms: "Net 30"
-    },
-    discount: 5000,
-    logs: [
-      { timestamp: "2026-05-25 11:44:00", level: "INFO", user: "Procurement Officer", message: "Created invoice INV-2026-002 from PO-2026-002" },
-      { timestamp: "2026-05-25 11:48:22", level: "WARNING", user: "System", message: "Subtotal exceeds $150,000 threshold. Escalating for Manager approval." },
-      { timestamp: "2026-05-26 09:00:15", level: "INFO", user: "Manager", message: "PO terms verified. Status updated to Pending." }
-    ]
-  },
-  {
-    id: "INV-2026-003",
-    poId: "PO-2026-003",
-    vendor: {
-      name: "E-Corp Logistical Systems",
-      address: "Suite 102, Transit Hub, Chennai 600001",
-    },
-    items: [
-      { id: 1, name: "Heavy Cargo Shipping Container", qty: 2, unitPrice: 120000, tax: 5 }
-    ],
-    status: "Overdue",
-    dates: {
-      invoiceDate: "2026-04-12",
-      dueDate: "2026-05-12",
-      paymentTerms: "Net 30"
-    },
-    discount: 0,
-    logs: [
-      { timestamp: "2026-04-12 15:30:10", level: "INFO", user: "Procurement Officer", message: "Generated invoice INV-2026-003" },
-      { timestamp: "2026-05-12 23:59:59", level: "ERROR", user: "System", message: "Due date 2026-05-12 passed. No payment received. Flagged as Overdue." }
-    ]
-  },
-  {
-    id: "INV-2026-004",
-    poId: "PO-2026-004",
-    vendor: {
-      name: "Acme Industrial Corp",
-      address: "123 Industrial Way, Suite A, Metropolis, NY 10001",
-    },
-    items: [
-      { id: 1, name: "Engine Valves - Hex-Type", qty: 20, unitPrice: 1500, tax: 10 },
-      { id: 2, name: "Steel Pipes 10ft", qty: 10, unitPrice: 3000, tax: 18 }
-    ],
-    status: "Draft",
-    dates: {
-      invoiceDate: "2026-06-06",
-      dueDate: "2026-07-06",
-      paymentTerms: "Net 30"
-    },
-    discount: 1500,
-    logs: [
-      { timestamp: "2026-06-06 09:24:12", level: "INFO", user: "Procurement Officer", message: "Created draft invoice INV-2026-004" },
-      { timestamp: "2026-06-06 09:24:30", level: "INFO", user: "System", message: "PO-2026-004 linked automatically after RFQ-2026-99 approval" }
-    ]
-  }
-];
+import { fetchApi } from './api';
 
 const navIcons = {
   Dashboard: (
@@ -151,29 +54,32 @@ export default function POInvoicePage() {
   const roles = ["Procurement Officer", "Vendor", "Manager / Approver", "Admin"];
   const [currentRole, setCurrentRole] = useState("Admin");
 
-  // Invoices Master State — persisted to localStorage
-  const [invoices, setInvoices] = useState(() => {
-    try {
-      const saved = localStorage.getItem('vb_invoices');
-      return saved ? JSON.parse(saved) : initialInvoices;
-    } catch {
-      return initialInvoices;
-    }
-  });
-  const [activeInvoiceId, setActiveInvoiceId] = useState(() => {
-    return localStorage.getItem('vb_activeInvoiceId') || 'INV-2026-004';
-  });
+  // Invoices Master State — loaded from backend API
+  const [invoices, setInvoices] = useState([]);
+  const [activeInvoiceId, setActiveInvoiceId] = useState('');
+
+  // Load invoices on component mount
+  useEffect(() => {
+    const loadInvoices = async () => {
+      try {
+        const data = await fetchApi('/dashboard/get-invoices');
+        const invoicesArray = data && data.invoices ? data.invoices : [];
+        setInvoices(invoicesArray);
+        if (invoicesArray.length > 0) {
+          setActiveInvoiceId(invoicesArray[0].id);
+        }
+      } catch (err) {
+        console.error('Failed to fetch invoices:', err);
+      }
+    };
+    loadInvoices();
+  }, []);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
 
-  // Persist invoices & active selection to localStorage
-  useEffect(() => {
-    try { localStorage.setItem('vb_invoices', JSON.stringify(invoices)); } catch {}
-  }, [invoices]);
+  // No localStorage persistence needed; data is managed via backend API
 
-  useEffect(() => {
-    localStorage.setItem('vb_activeInvoiceId', activeInvoiceId);
-  }, [activeInvoiceId]);
+  // Active invoice ID is managed by state loaded from API
 
   // Edit State
   const [isEditMode, setIsEditMode] = useState(false);
@@ -242,16 +148,11 @@ export default function POInvoicePage() {
   const showAddInvoiceBtn = currentRole === "Procurement Officer" || currentRole === "Admin" || currentRole === "Vendor";
   const showAddPoBtn = currentRole === "Procurement Officer" || currentRole === "Admin" || currentRole === "Manager / Approver";
 
-  const handleCreateInvoice = () => {
+  const handleCreateInvoice = async () => {
     if (isEditMode) {
       if (!confirm("Discard unsaved changes?")) return;
     }
-    const newId = `INV-2026-00${invoices.length + 1}`;
-    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
-    const dateStr = timestamp.split(' ')[0];
-
     const newInv = {
-      id: newId,
       poId: "Draft PO",
       vendor: {
         name: currentRole === "Vendor" ? "Vendor Self-Service" : "New Vendor Corp",
@@ -262,25 +163,23 @@ export default function POInvoicePage() {
       ],
       status: "Draft",
       dates: {
-        invoiceDate: dateStr,
-        dueDate: dateStr,
+        invoiceDate: new Date().toISOString().split('T')[0],
+        dueDate: new Date().toISOString().split('T')[0],
         paymentTerms: "Net 30"
       },
       discount: 0,
-      logs: [
-        {
-          timestamp,
-          level: "INFO",
-          user: currentRole,
-          message: `${currentRole === "Vendor" ? "Submitted" : "Created"} new invoice draft ${newId}`
-        }
-      ]
+      logs: []
     };
-
-    setInvoices(prev => [newInv, ...prev]);
-    setActiveInvoiceId(newId);
-    setIsEditMode(true);
-    setEditedInvoice(JSON.parse(JSON.stringify(newInv)));
+    try {
+      const created = await fetchApi('/dashboard/add-invoice', { method: 'POST', body: newInv });
+      const invoice = created.invoice || created;
+      setInvoices(prev => [invoice, ...prev]);
+      setActiveInvoiceId(invoice.id);
+      setIsEditMode(true);
+      setEditedInvoice(JSON.parse(JSON.stringify(invoice)));
+    } catch (err) {
+      alert('Failed to create invoice: ' + err.message);
+    }
   };
 
   const handleCreatePO = () => {
@@ -345,37 +244,25 @@ export default function POInvoicePage() {
     setEditedInvoice(null);
   };
 
-  const handleSaveEdit = () => {
+  const handleSaveEdit = async () => {
     const hasNegativeValues = editedInvoice.items.some(item => item.qty < 0 || item.unitPrice < 0 || item.tax < 0);
     if (hasNegativeValues) {
       alert("Error: Quantity, price, or tax cannot be negative.");
       return;
     }
-
     if (editedInvoice.discount < 0) {
       alert("Error: Discount cannot be negative.");
       return;
     }
-
-    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
-    const updatedLogs = [
-      ...editedInvoice.logs,
-      {
-        timestamp,
-        level: "INFO",
-        user: currentRole,
-        message: "Invoice values updated and saved"
-      }
-    ];
-
-    const updatedInvoice = {
-      ...editedInvoice,
-      logs: updatedLogs
-    };
-
-    setInvoices(prev => prev.map(inv => inv.id === updatedInvoice.id ? updatedInvoice : inv));
-    setIsEditMode(false);
-    setEditedInvoice(null);
+    try {
+      const updatedResponse = await fetchApi(`/dashboard/update-invoice/${editedInvoice.id}`, { method: 'PUT', body: editedInvoice });
+      const updated = updatedResponse.invoice || updatedResponse;
+      setInvoices(prev => prev.map(inv => inv.id === updated.id ? updated : inv));
+      setIsEditMode(false);
+      setEditedInvoice(null);
+    } catch (err) {
+      alert('Failed to save invoice: ' + err.message);
+    }
   };
 
   // Field updates in edit mode
@@ -444,31 +331,22 @@ export default function POInvoicePage() {
     }));
   };
 
-  const handleStatusChange = (newStatus) => {
+  const handleStatusChange = async (newStatus) => {
     setIsActionLoading(true);
-    setTimeout(() => {
-      const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
-      setInvoices(prev => prev.map(inv => {
-        if (inv.id === activeInvoiceId) {
-          const newLevel = newStatus === "Paid" ? "SUCCESS" : newStatus === "Overdue" ? "ERROR" : "WARNING";
-          return {
-            ...inv,
-            status: newStatus,
-            logs: [
-              ...inv.logs,
-              {
-                timestamp,
-                level: newLevel,
-                user: currentRole,
-                message: `Status updated to ${newStatus}`
-              }
-            ]
-          };
-        }
-        return inv;
-      }));
+    try {
+      const activeInv = invoices.find(inv => inv.id === activeInvoiceId);
+      if (!activeInv) throw new Error('Active invoice not found');
+      const updatedResponse = await fetchApi(`/dashboard/update-invoice/${activeInvoiceId}`, {
+        method: 'PUT',
+        body: { ...activeInv, status: newStatus }
+      });
+      const updated = updatedResponse.invoice || updatedResponse;
+      setInvoices(prev => prev.map(inv => inv.id === updated.id ? updated : inv));
+    } catch (err) {
+      alert('Failed to update status: ' + err.message);
+    } finally {
       setIsActionLoading(false);
-    }, 400);
+    }
   };
 
   const handlePrint = () => {
