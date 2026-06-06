@@ -35,9 +35,9 @@ export default function ReportsView() {
     async function loadData() {
       try {
         const [invoicesRes, vendorsRes, posRes] = await Promise.all([
-          fetchApi('/dashboard/get-invoices'),
-          fetchApi('/dashboard/get-vendors'),
-          fetchApi('/dashboard/get-purchase-orders')
+          fetchApi('/invoices'),
+          fetchApi('/vendors'),
+          fetchApi('/purchase-orders')
         ]);
 
         const invoices = invoicesRes?.invoices || [];

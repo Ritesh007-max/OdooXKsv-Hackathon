@@ -71,10 +71,10 @@ export default function ActivityView() {
     async function seedFromBackend() {
       try {
         const [invRes, vendorRes, rfqRes, poRes] = await Promise.all([
-          fetchApi('/dashboard/get-invoices'),
-          fetchApi('/dashboard/get-vendors'),
-          fetchApi('/dashboard/get-rfqs'),
-          fetchApi('/dashboard/get-purchase-orders'),
+          fetchApi('/invoices'),
+          fetchApi('/vendors'),
+          fetchApi('/rfqs'),
+          fetchApi('/purchase-orders'),
         ]);
 
         const invoices = invRes?.invoices || [];

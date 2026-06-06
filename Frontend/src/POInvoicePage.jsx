@@ -132,10 +132,14 @@ export default function POInvoicePage() {
   // Filter Invoices for the Sidebar explorer
   const filteredInvoices = useMemo(() => {
     return invoices.filter(inv => {
+      const idStr = String(inv.id || inv.invoiceId || "");
+      const poIdStr = String(inv.poId || "");
+      const vendorNameStr = String(inv.vendor?.name || "");
+
       const matchesSearch =
-        inv.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        inv.poId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        inv.vendor.name.toLowerCase().includes(searchTerm.toLowerCase());
+        idStr.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        poIdStr.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        vendorNameStr.toLowerCase().includes(searchTerm.toLowerCase());
 
       const matchesStatus = statusFilter === "All" || inv.status === statusFilter;
 
@@ -222,7 +226,7 @@ export default function POInvoicePage() {
     };
 
     try {
-      const created = await fetchApi('/dashboard/add-invoice', { method: 'POST', body: newInv });
+      const created = await fetchApi('/invoices', { method: 'POST', body: newInv });
       const invoice = created.invoice || created;
       
       setInvoices(prev => [invoice, ...prev]);
