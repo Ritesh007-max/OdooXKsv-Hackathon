@@ -1,4 +1,7 @@
-export const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+let base = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+if (base.endsWith('/')) base = base.slice(0, -1);
+if (!base.endsWith('/api')) base += '/api';
+export const API_BASE = base;
 
 export async function fetchApi(path, options = {}) {
   const url = `${API_BASE}${path}`;
