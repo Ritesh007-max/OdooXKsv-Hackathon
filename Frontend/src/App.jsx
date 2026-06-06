@@ -25,9 +25,9 @@ function App() {
 
   return (
     <div className="h-screen w-full flex flex-col bg-background text-gray-900 font-sans overflow-hidden">
-      <TopBar />
+      <TopBar className="no-print" />
       <div className="flex flex-1 overflow-hidden">
-        <Sidebar currentPath={currentPath} onNavigate={(path) => {
+        <Sidebar className="no-print" currentPath={currentPath} onNavigate={(path) => {
           setCurrentPath(path);
           if (path !== 'vendors') setOpenVendorModal(false);
         }} />

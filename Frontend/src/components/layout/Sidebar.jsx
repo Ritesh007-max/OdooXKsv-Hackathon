@@ -15,7 +15,7 @@ const navItems = [
 
 const Sidebar = ({ currentPath, onNavigate }) => {
   return (
-    <aside className="w-56 bg-white border-r border-gray-200 flex flex-col h-full overflow-y-auto shrink-0">
+    <aside className="no-print w-56 bg-white border-r border-gray-200 flex flex-col h-full overflow-y-auto shrink-0">
       <div className="py-4 flex-1">
         <ul className="space-y-1">
           {navItems.map((item) => {
