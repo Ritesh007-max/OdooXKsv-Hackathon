@@ -27,50 +27,16 @@ const initialTimeline = [
   { time: "2026-06-01 10:00", event: "RFQ Published: Office Furniture Procurement Q2" }
 ];
 
-const ApprovalWorkflowView = () => {
+const ApprovalWorkflowView = ({ selectedQuotation }) => {
   const [currentStage, setCurrentStage] = useState(1); // 1 = Review
   const [reviewers, setReviewers] = useState(initialReviewers);
   const [timelineEvents, setTimelineEvents] = useState(initialTimeline);
   const [remarks, setRemarks] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
-  const [hasSelectedQuotation, setHasSelectedQuotation] = useState(false);
-  const [activeQuotation, setActiveQuotation] = useState(null);
+  const [activeDevQuotation, setActiveDevQuotation] = useState(null);
 
-  React.useEffect(() => {
-    const savedApproval = localStorage.getItem('vendorBridge_pendingApproval');
-    if (savedApproval) {
-      try {
-        const parsed = JSON.parse(savedApproval);
-        const quote = quotationsMock.find(q => q.id === parsed.selectedQuotationId);
-        if (quote) {
-          setActiveQuotation(quote);
-          setHasSelectedQuotation(true);
-        }
-
-        // Resume saved workflow state
-        if (parsed.status === 'approved' || parsed.status === 'rejected') {
-          const isApprove = parsed.status === 'approved';
-          
-          setReviewers(prev => prev.map(r => 
-            r.id === 2 ? { ...r, status: isApprove ? "Approved" : "Rejected" } : r
-          ));
-          setCurrentStage(isApprove ? 2 : 1);
-          
-          if (parsed.actionTimestamp) {
-            setTimelineEvents(prev => [
-              { 
-                time: parsed.actionTimestamp, 
-                event: `Quotation ${isApprove ? 'Approved' : 'Rejected'} by Priya Sharma${parsed.remarks ? ` - Remarks: "${parsed.remarks}"` : ''}` 
-              },
-              ...initialTimeline
-            ]);
-          }
-        }
-      } catch (e) {
-        console.error("Error parsing saved approval", e);
-      }
-    }
-  }, []);
+  const activeQuotation = selectedQuotation || activeDevQuotation;
+  const hasSelectedQuotation = !!activeQuotation;
 
   const handleAction = (isApprove) => {
     if (!remarks.trim() && !isApprove) {
@@ -97,18 +63,6 @@ const ApprovalWorkflowView = () => {
         },
         ...initialTimeline
       ]);
-
-      // Save decision back to localStorage to persist across navigation
-      const savedApproval = localStorage.getItem('vendorBridge_pendingApproval');
-      if (savedApproval) {
-        try {
-          const parsed = JSON.parse(savedApproval);
-          parsed.status = isApprove ? 'approved' : 'rejected';
-          parsed.remarks = remarks;
-          parsed.actionTimestamp = timestamp;
-          localStorage.setItem('vendorBridge_pendingApproval', JSON.stringify(parsed));
-        } catch (e) {}
-      }
       
       setActionLoading(false);
       setRemarks("");
@@ -131,8 +85,7 @@ const ApprovalWorkflowView = () => {
             Please select a quotation from the Quotation Comparison screen to initiate the approval workflow.
           </p>
           <Button variant="primary" onClick={() => {
-            setActiveQuotation(quotationsMock[1]);
-            setHasSelectedQuotation(true);
+            setActiveDevQuotation(quotationsMock[1]);
           }}>
             [Dev] Load Mock Quotation
           </Button>
