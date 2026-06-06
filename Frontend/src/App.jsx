@@ -6,6 +6,7 @@ import VendorsView from './components/vendors/VendorsView';
 import RFQsView from './components/rfqs/RFQsView';
 import POInvoicePage from './POInvoicePage';
 import QuotationComparisonView from './components/quotations/QuotationComparisonView';
+import ApprovalWorkflowView from './components/approvals/ApprovalWorkflowView';
 
 function App() {
   const [currentPath, setCurrentPath] = useState(() => {
@@ -37,8 +38,9 @@ function App() {
         {currentPath === 'rfqs' && <RFQsView />}
         {currentPath === 'invoices' && <POInvoicePage />}
         {currentPath === 'quotations' && <QuotationComparisonView onNavigate={setCurrentPath} />}
+        {currentPath === 'approvals' && <ApprovalWorkflowView />}
         
-        {currentPath !== 'dashboard' && currentPath !== 'vendors' && currentPath !== 'rfqs' && currentPath !== 'invoices' && currentPath !== 'quotations' && (
+        {currentPath !== 'dashboard' && currentPath !== 'vendors' && currentPath !== 'rfqs' && currentPath !== 'invoices' && currentPath !== 'quotations' && currentPath !== 'approvals' && (
           <main className="flex-1 overflow-y-auto p-6 flex flex-col items-center justify-center">
             <h2 className="text-headline text-gray-400">Page under construction</h2>
           </main>
