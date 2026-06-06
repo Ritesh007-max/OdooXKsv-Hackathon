@@ -1,10 +1,36 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import StatCard from './StatCard';
 import OrdersTable from './OrdersTable';
 import SpendingChart from './SpendingChart';
 import Button from '../ui/Button';
+import { fetchApi } from '../../api';
 
 const DashboardView = ({ onAddVendor }) => {
+  const [stats, setStats] = useState({
+    activeRfqs: 0,
+    pendingApprovals: 0,
+    monthlySpend: 0,
+    activeVendors: 0,
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchApi('/dashboard/overview')
+      .then((data) => {
+        setStats({
+          activeRfqs: data.activeRfqs || 0,
+          pendingApprovals: data.pendingApprovals || 0,
+          monthlySpend: data.monthlySpend || 0,
+          activeVendors: data.activeVendors || 0,
+        });
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error('Failed to fetch dashboard overview:', err);
+        setLoading(false);
+      });
+  }, []);
+
   return (
     <main className="flex-1 overflow-y-auto p-6 flex flex-col gap-6">
       {/* Header section */}
@@ -17,10 +43,10 @@ const DashboardView = ({ onAddVendor }) => {
 
       {/* Stats section */}
       <div className="flex gap-4 overflow-x-auto pb-2">
-        <StatCard value="12" title="Active RFQ's" />
-        <StatCard value="5" title="Pending Approvals" />
-        <StatCard value="$ 2.3L" title="PO's this month" />
-        <StatCard value="3" title="overdue invoices" />
+        <StatCard value={loading ? "..." : stats.activeRfqs.toString()} title="Active RFQ's" />
+        <StatCard value={loading ? "..." : stats.pendingApprovals.toString()} title="Pending Approvals" />
+        <StatCard value={loading ? "..." : `$${stats.monthlySpend.toLocaleString()}`} title="PO's this month" />
+        <StatCard value={loading ? "..." : stats.activeVendors.toString()} title="Active Vendors" />
       </div>
 
       {/* Content section */}

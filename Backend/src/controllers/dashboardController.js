@@ -100,6 +100,59 @@ async function getVendors(req, res, next) {
   }
 }
 
+async function addVendor(req, res, next) {
+  try {
+    const vendor = await dashboardService.addVendor(req.body);
+    res.status(201).json({ vendor });
+  } catch (error) {
+    next(error);
+  }
+}
+
+async function updateVendor(req, res, next) {
+  try {
+    const vendor = await dashboardService.updateVendor(req.params.id, req.body);
+    if (!vendor) {
+      return res.status(404).json({ message: "Vendor not found" });
+    }
+    res.json({ vendor });
+  } catch (error) {
+    next(error);
+  }
+}
+
+async function deleteVendor(req, res, next) {
+  try {
+    const vendor = await dashboardService.deleteVendor(req.params.id);
+    if (!vendor) {
+      return res.status(404).json({ message: "Vendor not found" });
+    }
+    res.json({ message: "Vendor deleted successfully", vendor });
+  } catch (error) {
+    next(error);
+  }
+}
+
+async function addInvoice(req, res, next) {
+  try {
+    const invoice = await dashboardService.addInvoice(req.body);
+    res.status(201).json({ invoice });
+  } catch (error) {
+    next(error);
+  }
+}
+
+async function updateInvoice(req, res, next) {
+  try {
+    const invoice = await dashboardService.updateInvoice(req.params.id, req.body);
+    if (!invoice) {
+      return res.status(404).json({ message: "Invoice not found" });
+    }
+    res.json({ invoice });
+  } catch (error) {
+    next(error);
+  }
+}
 
 module.exports = {
   getDashboardOverview,
@@ -111,5 +164,10 @@ module.exports = {
   getQuotations,
   getRfqs,
   getUsers,
-  getVendors
+  getVendors,
+  addVendor,
+  updateVendor,
+  deleteVendor,
+  addInvoice,
+  updateInvoice
 };
