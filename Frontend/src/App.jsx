@@ -14,6 +14,7 @@ function App() {
     return saved || 'dashboard';
   });
   const [openVendorModal, setOpenVendorModal] = useState(false);
+  const [rfqInitialMode, setRfqInitialMode] = useState(null);
   
   // Hoist Quotations state to app-level to survive route unmounts without localStorage
   const [globalQuotations, setGlobalQuotations] = useState([]);
@@ -36,18 +37,30 @@ function App() {
     setCurrentPath('vendors');
   };
 
+  const navigateToRfqsWithCreate = () => {
+    setRfqInitialMode('create');
+    setCurrentPath('rfqs');
+  };
+
   return (
     <div className="h-screen w-full flex flex-col bg-background text-gray-900 font-sans overflow-hidden">
-      <TopBar />
+      <TopBar className="no-print" />
       <div className="flex flex-1 overflow-hidden">
-        <Sidebar currentPath={currentPath} onNavigate={(path) => {
+        <Sidebar className="no-print" currentPath={currentPath} onNavigate={(path) => {
           setCurrentPath(path);
           if (path !== 'vendors') setOpenVendorModal(false);
+          if (path !== 'rfqs') setRfqInitialMode(null);
         }} />
         
-        {currentPath === 'dashboard' && <DashboardView onAddVendor={navigateToVendorsWithAdd} />}
+        {currentPath === 'dashboard' && (
+          <DashboardView 
+            onAddVendor={navigateToVendorsWithAdd} 
+            onNewRfq={navigateToRfqsWithCreate}
+            onViewInvoices={() => setCurrentPath('invoices')}
+          />
+        )}
         {currentPath === 'vendors' && <VendorsView openVendorModal={openVendorModal} setOpenVendorModal={setOpenVendorModal} />}
-        {currentPath === 'rfqs' && <RFQsView />}
+        {currentPath === 'rfqs' && <RFQsView initialMode={rfqInitialMode} clearInitialMode={() => setRfqInitialMode(null)} />}
         {currentPath === 'invoices' && <POInvoicePage />}
         {currentPath === 'quotations' && (
           <QuotationsModule 

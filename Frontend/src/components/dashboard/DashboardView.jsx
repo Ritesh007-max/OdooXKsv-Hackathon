@@ -5,7 +5,7 @@ import SpendingChart from './SpendingChart';
 import Button from '../ui/Button';
 import { fetchApi } from '../../api';
 
-const DashboardView = ({ onAddVendor }) => {
+const DashboardView = ({ onAddVendor, onNewRfq, onViewInvoices }) => {
   const [stats, setStats] = useState({
     activeRfqs: 0,
     pendingApprovals: 0,
@@ -57,9 +57,9 @@ const DashboardView = ({ onAddVendor }) => {
 
       {/* Footer Action buttons */}
       <div className="flex gap-4 mt-auto pt-6 border-t border-gray-200">
-        <Button variant="secondary" size="medium">+ new RFQ</Button>
+        <Button variant="secondary" size="medium" onClick={onNewRfq}>+ new RFQ</Button>
         <Button variant="secondary" size="medium" onClick={onAddVendor}>Add Vendor</Button>
-        <Button variant="secondary" size="medium">view Invoices</Button>
+        <Button variant="secondary" size="medium" onClick={onViewInvoices}>view Invoices</Button>
       </div>
     </main>
   );

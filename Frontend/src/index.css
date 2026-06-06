@@ -488,18 +488,30 @@ body {
     color: #000000 !important;
   }
 
+  /* Hide all UI chrome */
   .no-print {
     display: none !important;
   }
 
+  /* Make root containers full width */
+  #root,
+  #root > div {
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* Invoice content area fills the full page */
   .print-invoice-sheet {
+    display: block !important;
+    width: 100% !important;
     background: #ffffff !important;
     color: #000000 !important;
     border: none !important;
     box-shadow: none !important;
-    padding: 0 !important;
+    padding: 24px !important;
     margin: 0 !important;
-    width: 100% !important;
   }
 
   .print-invoice-sheet table {
