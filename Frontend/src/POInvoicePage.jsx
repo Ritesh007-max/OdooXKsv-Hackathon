@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { fetchApi } from './api';
+import { useActivity } from './ActivityContext';
 
 const navIcons = {
   Dashboard: (
@@ -53,6 +54,7 @@ export default function POInvoicePage() {
   // Application Roles
   const roles = ["Procurement Officer", "Vendor", "Manager / Approver", "Admin"];
   const [currentRole, setCurrentRole] = useState("Admin");
+  const { addActivity } = useActivity();
 
   // Invoices Master State — loaded from backend API
   const [invoices, setInvoices] = useState([]);
@@ -177,12 +179,13 @@ export default function POInvoicePage() {
       setActiveInvoiceId(invoice.id);
       setIsEditMode(true);
       setEditedInvoice(JSON.parse(JSON.stringify(invoice)));
+      addActivity('invoice', `Invoice created — ${invoice.id || 'Draft'} generated`, 'info');
     } catch (err) {
       alert('Failed to create invoice: ' + err.message);
     }
   };
 
-  const handleCreatePO = () => {
+  const handleCreatePO = async () => {
     if (isEditMode) {
       if (!confirm("Discard unsaved changes?")) return;
     }
@@ -218,10 +221,18 @@ export default function POInvoicePage() {
       ]
     };
 
-    setInvoices(prev => [newInv, ...prev]);
-    setActiveInvoiceId(newId);
-    setIsEditMode(true);
-    setEditedInvoice(JSON.parse(JSON.stringify(newInv)));
+    try {
+      const created = await fetchApi('/dashboard/add-invoice', { method: 'POST', body: newInv });
+      const invoice = created.invoice || created;
+      
+      setInvoices(prev => [invoice, ...prev]);
+      setActiveInvoiceId(invoice.id);
+      setIsEditMode(true);
+      setEditedInvoice(JSON.parse(JSON.stringify(invoice)));
+      addActivity('po', `PO generated — ${newPoId} created with invoice ${invoice.id}`, 'info');
+    } catch (err) {
+      alert('Failed to create PO/Invoice: ' + err.message);
+    }
   };
 
   // Handlers
@@ -260,6 +271,7 @@ export default function POInvoicePage() {
       setInvoices(prev => prev.map(inv => inv.id === updated.id ? updated : inv));
       setIsEditMode(false);
       setEditedInvoice(null);
+      addActivity('invoice', `Invoice updated — ${updated.id || 'Invoice'} modified`, 'info');
     } catch (err) {
       alert('Failed to save invoice: ' + err.message);
     }
@@ -342,6 +354,9 @@ export default function POInvoicePage() {
       });
       const updated = updatedResponse.invoice || updatedResponse;
       setInvoices(prev => prev.map(inv => inv.id === updated.id ? updated : inv));
+      
+      const stColor = newStatus === 'Paid' ? 'success' : newStatus === 'Overdue' ? 'pending' : 'info';
+      addActivity('invoice', `Invoice status — ${activeInv.id || 'Invoice'} marked as ${newStatus}`, stColor);
     } catch (err) {
       alert('Failed to update status: ' + err.message);
     } finally {

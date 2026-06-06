@@ -3,8 +3,10 @@ import Button from '../ui/Button';
 import QuotationCard from './QuotationCard';
 import ConfirmationModal from './ConfirmationModal';
 import { rfqDetails, quotationsMock } from '../../mock/quotationData';
+import { useActivity } from '../../ActivityContext';
 
 const QuotationComparisonView = ({ onNavigate }) => {
+  const { addActivity } = useActivity();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   
@@ -46,6 +48,9 @@ const QuotationComparisonView = ({ onNavigate }) => {
         status: 'pending_approval',
         timestamp: Date.now()
       }));
+
+      const quote = quotationsMock.find(q => q.id === selectedQuotationId);
+      addActivity('approval', `Quotation selected — ${quote?.vendorName} sent for approval`, 'success');
       
     }, 600);
   };
