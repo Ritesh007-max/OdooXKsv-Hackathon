@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, Users, FileText, CheckSquare, ShoppingCart, FileSpreadsheet, BarChart2, Activity } from 'lucide-react';
+import { LayoutDashboard, Users, FileText, CheckSquare, FileSpreadsheet, BarChart2, Activity } from 'lucide-react';
 
 const navItems = [
   { id: 'dashboard', name: 'Dashboard', icon: LayoutDashboard },
@@ -7,7 +7,6 @@ const navItems = [
   { id: 'rfqs', name: 'RFQ\'s', icon: FileText },
   { id: 'quotations', name: 'Quotations', icon: FileSpreadsheet },
   { id: 'approvals', name: 'Approvals', icon: CheckSquare },
-  { id: 'purchase_orders', name: 'Purchase orders', icon: ShoppingCart },
   { id: 'invoices', name: 'Invoices', icon: FileText },
   { id: 'reports', name: 'Reports', icon: BarChart2 },
   { id: 'activity', name: 'Activity', icon: Activity },

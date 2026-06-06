@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ResponsiveContainer, LineChart, Line, Tooltip } from 'recharts';
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { fetchApi } from '../../api';
 
 const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -12,7 +12,7 @@ const getLastSixMonths = () => {
     result.push({
       key: `${d.getFullYear()}-${d.getMonth()}`,
       name: monthNames[d.getMonth()],
-      spending: 0
+      spending: 0,
     });
   }
   return result;
@@ -21,9 +21,9 @@ const getLastSixMonths = () => {
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-white border border-gray-200 rounded shadow-md p-2">
-        <p className="text-caption font-sans text-gray-500 mb-1">{label}</p>
-        <p className="text-body font-mono font-bold text-orange-500">
+      <div className="bg-white border border-gray-200 rounded shadow-md p-2 text-xs">
+        <p className="font-sans text-gray-500 mb-1">{label}</p>
+        <p className="font-mono font-bold text-orange-500">
           ${payload[0].value.toLocaleString()}
         </p>
       </div>
@@ -34,6 +34,7 @@ const CustomTooltip = ({ active, payload, label }) => {
 
 const SpendingChart = () => {
   const [chartData, setChartData] = useState([]);
+  const [totalSpend, setTotalSpend] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -42,18 +43,30 @@ const SpendingChart = () => {
         const invoices = data.invoices || [];
         const baseMonths = getLastSixMonths();
 
+        let total = 0;
+
         invoices.forEach((inv) => {
-          const invDate = inv.date ? new Date(inv.date) : new Date(inv.createdAt);
-          if (!isNaN(invDate.getTime())) {
-            const key = `${invDate.getFullYear()}-${invDate.getMonth()}`;
-            const bucket = baseMonths.find((b) => b.key === key);
-            if (bucket) {
-              bucket.spending += inv.total || 0;
+          // Try multiple date fields: dates.invoiceDate, createdAt, date
+          const rawDate =
+            inv.dates?.invoiceDate ||
+            inv.createdAt ||
+            inv.date;
+
+          if (rawDate) {
+            const invDate = new Date(rawDate);
+            if (!isNaN(invDate.getTime())) {
+              const key = `${invDate.getFullYear()}-${invDate.getMonth()}`;
+              const bucket = baseMonths.find((b) => b.key === key);
+              if (bucket) {
+                bucket.spending += inv.total || 0;
+              }
             }
           }
+          total += inv.total || 0;
         });
 
         setChartData(baseMonths);
+        setTotalSpend(total);
         setLoading(false);
       })
       .catch((err) => {
@@ -62,50 +75,79 @@ const SpendingChart = () => {
       });
   }, []);
 
+  const maxSpend = Math.max(...chartData.map((d) => d.spending), 1);
+
   return (
-    <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-5 flex flex-col w-[300px] flex-shrink-0 relative">
-      <div className="text-body font-sans font-medium text-gray-500 mb-6 text-center">
-        Spending Trends last 6 months
+    <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-5 flex flex-col w-[300px] flex-shrink-0">
+      {/* Header */}
+      <div className="text-body font-sans font-semibold text-gray-700 mb-1 text-center">
+        Spending Trends
       </div>
-      
-      <div className="flex gap-4 mb-4">
-        {/* Mock bullet points */}
-        <div className="space-y-2 flex-1">
-          <div className="h-2 bg-gray-200 rounded-full w-full"></div>
-          <div className="h-2 bg-gray-200 rounded-full w-4/5"></div>
-          <div className="h-2 bg-gray-200 rounded-full w-full"></div>
-          <div className="h-2 bg-gray-200 rounded-full w-3/4"></div>
+      <div className="text-caption font-sans text-gray-400 text-center mb-4">
+        Last 6 months
+      </div>
+
+      {/* Summary */}
+      <div className="flex justify-between items-center mb-4 px-1">
+        <div className="text-center">
+          <div className="text-[11px] font-sans text-gray-400 uppercase tracking-wider">Total</div>
+          <div className="text-body font-mono font-bold text-orange-500">
+            ${totalSpend.toLocaleString()}
+          </div>
         </div>
-        {/* Mock Pie Chart */}
-        <div className="w-12 h-12 rounded-full border-4 border-[#06B6D4] border-t-green-500 transform rotate-45 shrink-0"></div>
+        <div className="text-center">
+          <div className="text-[11px] font-sans text-gray-400 uppercase tracking-wider">Peak</div>
+          <div className="text-body font-mono font-bold text-gray-700">
+            ${maxSpend.toLocaleString()}
+          </div>
+        </div>
+        <div className="text-center">
+          <div className="text-[11px] font-sans text-gray-400 uppercase tracking-wider">Avg/mo</div>
+          <div className="text-body font-mono font-bold text-gray-700">
+            ${chartData.length > 0 ? Math.round(totalSpend / chartData.length).toLocaleString() : 0}
+          </div>
+        </div>
       </div>
-      
-      <div className="h-24 w-full">
+
+      {/* Chart */}
+      <div className="h-36 w-full">
         {loading ? (
           <div className="flex items-center justify-center h-full text-caption text-gray-400">
             Loading chart...
           </div>
         ) : (
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData}>
-              <Tooltip content={<CustomTooltip />} cursor={false} />
-              <Line type="monotone" dataKey="spending" stroke="#EF4444" strokeWidth={2} dot={{ r: 3, fill: '#EF4444', strokeWidth: 0 }} />
-            </LineChart>
+            <BarChart data={chartData} margin={{ top: 4, right: 4, left: -24, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" vertical={false} />
+              <XAxis
+                dataKey="name"
+                tick={{ fontSize: 10, fill: '#9CA3AF', fontFamily: 'sans-serif' }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <YAxis
+                tick={{ fontSize: 9, fill: '#D1D5DB', fontFamily: 'monospace' }}
+                axisLine={false}
+                tickLine={false}
+                tickFormatter={(v) => v >= 1000 ? `${Math.round(v / 1000)}k` : v}
+              />
+              <Tooltip content={<CustomTooltip />} cursor={{ fill: '#FEF3C7' }} />
+              <Bar
+                dataKey="spending"
+                fill="#F59E0B"
+                radius={[3, 3, 0, 0]}
+              />
+            </BarChart>
           </ResponsiveContainer>
         )}
       </div>
 
-      <div className="flex gap-2 mt-4 items-end">
-        {/* Mock Bar Chart */}
-        <div className="w-6 bg-orange-400 opacity-70 h-8 rounded-t-[2px]"></div>
-        <div className="w-6 bg-orange-400 opacity-90 h-12 rounded-t-[2px]"></div>
-        <div className="w-6 bg-orange-500 h-16 rounded-t-[2px]"></div>
-        <div className="space-y-1.5 flex-1 ml-2 mb-1">
-          <div className="h-1.5 bg-gray-200 rounded-full w-full"></div>
-          <div className="h-1.5 bg-gray-200 rounded-full w-full"></div>
-          <div className="h-1.5 bg-gray-200 rounded-full w-4/5"></div>
-        </div>
-      </div>
+      {/* Empty state hint */}
+      {!loading && totalSpend === 0 && (
+        <p className="text-[10px] text-center text-gray-400 mt-2">
+          No invoices in the last 6 months
+        </p>
+      )}
     </div>
   );
 };
