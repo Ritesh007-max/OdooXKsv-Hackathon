@@ -10,7 +10,7 @@ const RFQVendors = ({ assignedVendors, setAssignedVendors }) => {
   useEffect(() => {
     if (isModalOpen) {
       setLoading(true);
-      fetchApi('/dashboard/get-vendors')
+      fetchApi('/vendors')
         .then((data) => {
           const mapped = (data.vendors || []).map((v) => ({
             id: v._id,
