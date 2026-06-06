@@ -27,6 +27,11 @@ const vendorSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    status: {
+      type: String,
+      default: "Active",
+      trim: true,
+    },
     userId: {
       type: mongoose.Schema.Types.Mixed,
       ref: "User",

@@ -1,14 +1,22 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { ResponsiveContainer, LineChart, Line, Tooltip } from 'recharts';
+import { fetchApi } from '../../api';
 
-const data = [
-  { name: 'Jan', spending: 4000 },
-  { name: 'Feb', spending: 3000 },
-  { name: 'Mar', spending: 5000 },
-  { name: 'Apr', spending: 2780 },
-  { name: 'May', spending: 4890 },
-  { name: 'Jun', spending: 2390 },
-];
+const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+const getLastSixMonths = () => {
+  const result = [];
+  const now = new Date();
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    result.push({
+      key: `${d.getFullYear()}-${d.getMonth()}`,
+      name: monthNames[d.getMonth()],
+      spending: 0
+    });
+  }
+  return result;
+};
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
@@ -16,7 +24,7 @@ const CustomTooltip = ({ active, payload, label }) => {
       <div className="bg-white border border-gray-200 rounded shadow-md p-2">
         <p className="text-caption font-sans text-gray-500 mb-1">{label}</p>
         <p className="text-body font-mono font-bold text-orange-500">
-          ${payload[0].value}
+          ${payload[0].value.toLocaleString()}
         </p>
       </div>
     );
@@ -25,6 +33,35 @@ const CustomTooltip = ({ active, payload, label }) => {
 };
 
 const SpendingChart = () => {
+  const [chartData, setChartData] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchApi('/dashboard/get-invoices')
+      .then((data) => {
+        const invoices = data.invoices || [];
+        const baseMonths = getLastSixMonths();
+
+        invoices.forEach((inv) => {
+          const invDate = inv.date ? new Date(inv.date) : new Date(inv.createdAt);
+          if (!isNaN(invDate.getTime())) {
+            const key = `${invDate.getFullYear()}-${invDate.getMonth()}`;
+            const bucket = baseMonths.find((b) => b.key === key);
+            if (bucket) {
+              bucket.spending += inv.total || 0;
+            }
+          }
+        });
+
+        setChartData(baseMonths);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error('Failed to fetch invoice spending trends:', err);
+        setLoading(false);
+      });
+  }, []);
+
   return (
     <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-5 flex flex-col w-[300px] flex-shrink-0 relative">
       <div className="text-body font-sans font-medium text-gray-500 mb-6 text-center">
@@ -44,12 +81,18 @@ const SpendingChart = () => {
       </div>
       
       <div className="h-24 w-full">
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={data}>
-            <Tooltip content={<CustomTooltip />} cursor={false} />
-            <Line type="monotone" dataKey="spending" stroke="#EF4444" strokeWidth={2} dot={{ r: 3, fill: '#EF4444', strokeWidth: 0 }} />
-          </LineChart>
-        </ResponsiveContainer>
+        {loading ? (
+          <div className="flex items-center justify-center h-full text-caption text-gray-400">
+            Loading chart...
+          </div>
+        ) : (
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={chartData}>
+              <Tooltip content={<CustomTooltip />} cursor={false} />
+              <Line type="monotone" dataKey="spending" stroke="#EF4444" strokeWidth={2} dot={{ r: 3, fill: '#EF4444', strokeWidth: 0 }} />
+            </LineChart>
+          </ResponsiveContainer>
+        )}
       </div>
 
       <div className="flex gap-2 mt-4 items-end">

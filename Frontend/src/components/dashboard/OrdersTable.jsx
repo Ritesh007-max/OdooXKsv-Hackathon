@@ -1,16 +1,13 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { fetchApi } from '../../api';
 
-const orders = [
-  { id: 'Po1', vendor: 'Infra', amount: '87000', status: 'Approved' },
-  { id: 'Po2', vendor: 'Tech core', amount: '140000', status: 'Pending' },
-  { id: 'Po3', vendor: 'OfficeNeed Co', amount: '34900', status: 'draft' },
-];
-
-const getStatusStyles = (status) => {
+const getStatusStyles = (status = '') => {
   switch (status.toLowerCase()) {
     case 'approved':
+    case 'sent':
       return 'text-green-600 bg-green-50';
     case 'pending':
+    case 'pending_approval':
       return 'text-orange-600 bg-orange-50';
     case 'draft':
       return 'text-gray-600 bg-gray-100';
@@ -19,11 +16,13 @@ const getStatusStyles = (status) => {
   }
 };
 
-const getStatusDot = (status) => {
+const getStatusDot = (status = '') => {
   switch (status.toLowerCase()) {
     case 'approved':
+    case 'sent':
       return 'bg-green-500';
     case 'pending':
+    case 'pending_approval':
       return 'bg-orange-500';
     case 'draft':
       return 'bg-gray-400';
@@ -33,6 +32,21 @@ const getStatusDot = (status) => {
 };
 
 const OrdersTable = () => {
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchApi('/dashboard/recent-pos')
+      .then((data) => {
+        setOrders(data.purchaseOrders || []);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error('Failed to fetch recent purchase orders:', err);
+        setLoading(false);
+      });
+  }, []);
+
   return (
     <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden flex-1">
       <div className="px-5 py-4 border-b border-gray-200">
@@ -49,26 +63,49 @@ const OrdersTable = () => {
             </tr>
           </thead>
           <tbody>
-            {orders.map((order, index) => (
-              <tr 
-                key={order.id} 
-                className={`border-b border-gray-100 hover:bg-gray-50 transition-colors ${index === orders.length - 1 ? 'border-b-0' : ''}`}
-              >
-                <td className="px-5 py-3 text-body font-mono text-gray-900 font-medium">
-                  {order.id}
-                </td>
-                <td className="px-5 py-3 text-body font-sans text-gray-600">{order.vendor}</td>
-                <td className="px-5 py-3 text-body font-mono text-gray-900 text-right">{order.amount}</td>
-                <td className="px-5 py-3">
-                  <div className="flex items-center justify-center gap-1.5">
-                    <span className={`w-2 h-2 rounded-full ${getStatusDot(order.status)}`}></span>
-                    <span className={`inline-block px-2 py-0.5 rounded text-[11px] font-sans font-medium ${getStatusStyles(order.status)}`}>
-                      {order.status}
-                    </span>
-                  </div>
+            {loading ? (
+              <tr>
+                <td colSpan="4" className="px-5 py-6 text-center text-body font-sans text-gray-400">
+                  Loading recent orders...
                 </td>
               </tr>
-            ))}
+            ) : orders.length === 0 ? (
+              <tr>
+                <td colSpan="4" className="px-5 py-6 text-center text-body font-sans text-gray-400">
+                  No recent orders found.
+                </td>
+              </tr>
+            ) : (
+              orders.map((order, index) => {
+                const poNumber = typeof order._id === 'string' && order._id.length > 8
+                  ? `PO-${order._id.substring(0, 8).toUpperCase()}`
+                  : `PO-${order._id}`;
+                return (
+                  <tr 
+                    key={order._id} 
+                    className={`border-b border-gray-100 hover:bg-gray-50 transition-colors ${index === orders.length - 1 ? 'border-b-0' : ''}`}
+                  >
+                    <td className="px-5 py-3 text-body font-mono text-gray-900 font-medium">
+                      {poNumber}
+                    </td>
+                    <td className="px-5 py-3 text-body font-sans text-gray-600">
+                      {order.vendorId?.name || 'Unknown Vendor'}
+                    </td>
+                    <td className="px-5 py-3 text-body font-mono text-gray-900 text-right">
+                      ${order.total?.toLocaleString() || 0}
+                    </td>
+                    <td className="px-5 py-3">
+                      <div className="flex items-center justify-center gap-1.5">
+                        <span className={`w-2 h-2 rounded-full ${getStatusDot(order.status)}`}></span>
+                        <span className={`inline-block px-2 py-0.5 rounded text-[11px] font-sans font-medium ${getStatusStyles(order.status)}`}>
+                          {order.status || 'unknown'}
+                        </span>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })
+            )}
           </tbody>
         </table>
       </div>

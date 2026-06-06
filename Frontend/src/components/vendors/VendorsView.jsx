@@ -2,33 +2,42 @@ import React, { useState, useEffect } from 'react';
 import VendorFilters from './VendorFilters';
 import VendorsTable from './VendorsTable';
 import Button from '../ui/Button';
-
-// Initial Mock data
-const initialVendors = [
-  { id: 1, name: 'Infra Supplies Pvt Ltd', category: 'Constructions', gst: '27AABCS1429Bz0', contact: 'XYZ Number', status: 'Active' },
-  { id: 2, name: 'Tech Core LTD', category: 'IT', gst: '27AABCS1429Bz0', contact: 'XYZ Number', status: 'Active' },
-  { id: 3, name: 'FastLog Transport', category: 'logistics', gst: '27AABCS1429Bz0', contact: 'XYZ Number', status: 'Blocked' },
-];
+import { fetchApi } from '../../api';
 
 const VendorsView = ({ openVendorModal, setOpenVendorModal }) => {
-  // Lazy init from localStorage
-  const [vendors, setVendors] = useState(() => {
-    const saved = localStorage.getItem('vendorBridge_vendors');
-    if (saved) {
-      try { return JSON.parse(saved); } catch (e) { return initialVendors; }
-    }
-    return initialVendors;
-  });
+  const [vendors, setVendors] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('all');
   
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [selectedVendor, setSelectedVendor] = useState(null); // Used for Edit modal
-  
+
+  const loadVendors = () => {
+    setLoading(true);
+    fetchApi('/dashboard/get-vendors')
+      .then((data) => {
+        const mapped = (data.vendors || []).map((v) => ({
+          id: v._id,
+          name: v.name,
+          category: v.category,
+          gst: v.gst,
+          contact: v.contact,
+          status: v.status || 'Active',
+        }));
+        setVendors(mapped);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error('Failed to fetch vendors:', err);
+        setLoading(false);
+      });
+  };
+
   useEffect(() => {
-    localStorage.setItem('vendorBridge_vendors', JSON.stringify(vendors));
-  }, [vendors]);
+    loadVendors();
+  }, []);
 
   useEffect(() => {
     if (openVendorModal) {
@@ -45,39 +54,69 @@ const VendorsView = ({ openVendorModal, setOpenVendorModal }) => {
     e.preventDefault();
     if (!newVendor.name) return;
     
-    setVendors([...vendors, { ...newVendor, id: Date.now() }]);
-    setIsAddModalOpen(false);
-    setNewVendor({ name: '', category: '', gst: '', contact: '', status: 'Active' });
+    fetchApi('/dashboard/add-vendor', {
+      method: 'POST',
+      body: newVendor
+    })
+      .then(() => {
+        setIsAddModalOpen(false);
+        setNewVendor({ name: '', category: '', gst: '', contact: '', status: 'Active' });
+        loadVendors();
+      })
+      .catch((err) => {
+        console.error('Failed to add vendor:', err);
+        alert('Failed to add vendor. GST number must be unique.');
+      });
   };
 
   const handleUpdateVendor = (e) => {
     e.preventDefault();
     if (!selectedVendor || !selectedVendor.name) return;
 
-    setVendors(vendors.map(v => v.id === selectedVendor.id ? selectedVendor : v));
-    setSelectedVendor(null);
+    fetchApi(`/dashboard/update-vendor/${selectedVendor.id}`, {
+      method: 'PUT',
+      body: selectedVendor
+    })
+      .then(() => {
+        setSelectedVendor(null);
+        loadVendors();
+      })
+      .catch((err) => {
+        console.error('Failed to update vendor:', err);
+        alert('Failed to update vendor.');
+      });
   };
 
   const handleRemoveVendor = () => {
     if (!selectedVendor) return;
-    setVendors(vendors.filter(v => v.id !== selectedVendor.id));
-    setSelectedVendor(null);
+
+    fetchApi(`/dashboard/delete-vendor/${selectedVendor.id}`, {
+      method: 'DELETE'
+    })
+      .then(() => {
+        setSelectedVendor(null);
+        loadVendors();
+      })
+      .catch((err) => {
+        console.error('Failed to delete vendor:', err);
+        alert('Failed to delete vendor.');
+      });
   };
 
   const filteredVendors = vendors.filter(vendor => {
     const matchesSearch = 
-      vendor.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      vendor.gst.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      vendor.category.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesTab = activeFilter === 'all' || vendor.status.toLowerCase() === activeFilter.toLowerCase();
+      (vendor.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (vendor.gst || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (vendor.category || '').toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesTab = activeFilter === 'all' || (vendor.status || '').toLowerCase() === activeFilter.toLowerCase();
     return matchesSearch && matchesTab;
   });
 
   const counts = {
     all: vendors.length,
-    active: vendors.filter(v => v.status.toLowerCase() === 'active').length,
-    pending: vendors.filter(v => v.status.toLowerCase() === 'pending').length,
-    blocked: vendors.filter(v => v.status.toLowerCase() === 'blocked').length,
+    active: vendors.filter(v => (v.status || '').toLowerCase() === 'active').length,
+    pending: vendors.filter(v => (v.status || '').toLowerCase() === 'pending').length,
+    blocked: vendors.filter(v => (v.status || '').toLowerCase() === 'blocked').length,
   };
 
   return (
@@ -102,7 +141,13 @@ const VendorsView = ({ openVendorModal, setOpenVendorModal }) => {
         counts={counts}
       />
 
-      <VendorsTable vendors={filteredVendors} onViewVendor={(v) => setSelectedVendor(v)} />
+      {loading ? (
+        <div className="flex-1 flex items-center justify-center py-20 text-body font-sans text-gray-400">
+          Loading vendors...
+        </div>
+      ) : (
+        <VendorsTable vendors={filteredVendors} onViewVendor={(v) => setSelectedVendor(v)} />
+      )}
 
       {/* Add Vendor Modal */}
       {isAddModalOpen && (
