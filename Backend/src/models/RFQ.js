@@ -30,6 +30,14 @@ const rfqSchema = new mongoose.Schema(
         ref: "Vendor",
       },
     ],
+    category: {
+      type: String,
+      trim: true,
+    },
+    description: {
+      type: String,
+      trim: true,
+    },
     status: {
       type: String,
       enum: ["draft", "open", "closed", "awarded", "cancelled"],

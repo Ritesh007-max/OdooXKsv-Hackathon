@@ -13,6 +13,7 @@ function App() {
     return saved || 'dashboard';
   });
   const [openVendorModal, setOpenVendorModal] = useState(false);
+  const [rfqInitialMode, setRfqInitialMode] = useState(null);
 
   useEffect(() => {
     localStorage.setItem('vendorBridge_currentPath', currentPath);
@@ -23,6 +24,11 @@ function App() {
     setCurrentPath('vendors');
   };
 
+  const navigateToRfqsWithCreate = () => {
+    setRfqInitialMode('create');
+    setCurrentPath('rfqs');
+  };
+
   return (
     <div className="h-screen w-full flex flex-col bg-background text-gray-900 font-sans overflow-hidden">
       <TopBar className="no-print" />
@@ -30,11 +36,18 @@ function App() {
         <Sidebar className="no-print" currentPath={currentPath} onNavigate={(path) => {
           setCurrentPath(path);
           if (path !== 'vendors') setOpenVendorModal(false);
+          if (path !== 'rfqs') setRfqInitialMode(null);
         }} />
         
-        {currentPath === 'dashboard' && <DashboardView onAddVendor={navigateToVendorsWithAdd} />}
+        {currentPath === 'dashboard' && (
+          <DashboardView 
+            onAddVendor={navigateToVendorsWithAdd} 
+            onNewRfq={navigateToRfqsWithCreate}
+            onViewInvoices={() => setCurrentPath('invoices')}
+          />
+        )}
         {currentPath === 'vendors' && <VendorsView openVendorModal={openVendorModal} setOpenVendorModal={setOpenVendorModal} />}
-        {currentPath === 'rfqs' && <RFQsView />}
+        {currentPath === 'rfqs' && <RFQsView initialMode={rfqInitialMode} clearInitialMode={() => setRfqInitialMode(null)} />}
         {currentPath === 'invoices' && <POInvoicePage />}
         {currentPath === 'quotations' && <QuotationComparisonView onNavigate={setCurrentPath} />}
         
