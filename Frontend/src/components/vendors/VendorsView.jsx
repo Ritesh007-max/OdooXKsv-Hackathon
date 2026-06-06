@@ -18,7 +18,7 @@ const VendorsView = ({ openVendorModal, setOpenVendorModal }) => {
 
   const loadVendors = () => {
     setLoading(true);
-    fetchApi('/dashboard/get-vendors')
+    fetchApi('/vendors')
       .then((data) => {
         const mapped = (data.vendors || []).map((v) => ({
           id: v._id,
@@ -56,7 +56,7 @@ const VendorsView = ({ openVendorModal, setOpenVendorModal }) => {
     e.preventDefault();
     if (!newVendor.name) return;
     
-    fetchApi('/dashboard/add-vendor', {
+    fetchApi('/vendors', {
       method: 'POST',
       body: newVendor
     })
@@ -76,7 +76,7 @@ const VendorsView = ({ openVendorModal, setOpenVendorModal }) => {
     e.preventDefault();
     if (!selectedVendor || !selectedVendor.name) return;
 
-    fetchApi(`/dashboard/update-vendor/${selectedVendor.id}`, {
+    fetchApi(`/vendors/${selectedVendor.id}`, {
       method: 'PUT',
       body: selectedVendor
     })
@@ -94,7 +94,7 @@ const VendorsView = ({ openVendorModal, setOpenVendorModal }) => {
   const handleRemoveVendor = () => {
     if (!selectedVendor) return;
 
-    fetchApi(`/dashboard/delete-vendor/${selectedVendor.id}`, {
+    fetchApi(`/vendors/${selectedVendor.id}`, {
       method: 'DELETE'
     })
       .then(() => {

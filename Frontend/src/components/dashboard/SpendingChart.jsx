@@ -37,7 +37,7 @@ const SpendingChart = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchApi('/dashboard/get-invoices')
+    fetchApi('/invoices')
       .then((data) => {
         const invoices = data.invoices || [];
         const baseMonths = getLastSixMonths();

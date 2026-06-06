@@ -64,7 +64,7 @@ export default function POInvoicePage() {
   useEffect(() => {
     const loadInvoices = async () => {
       try {
-        const data = await fetchApi('/dashboard/get-invoices');
+        const data = await fetchApi('/invoices');
         const invoicesArray = data && data.invoices ? data.invoices : [];
         setInvoices(invoicesArray);
         if (invoicesArray.length > 0) {
@@ -173,7 +173,7 @@ export default function POInvoicePage() {
       logs: []
     };
     try {
-      const created = await fetchApi('/dashboard/add-invoice', { method: 'POST', body: newInv });
+      const created = await fetchApi('/invoices', { method: 'POST', body: newInv });
       const invoice = created.invoice || created;
       setInvoices(prev => [invoice, ...prev]);
       setActiveInvoiceId(invoice.id);
@@ -266,7 +266,7 @@ export default function POInvoicePage() {
       return;
     }
     try {
-      const updatedResponse = await fetchApi(`/dashboard/update-invoice/${editedInvoice.id}`, { method: 'PUT', body: editedInvoice });
+      const updatedResponse = await fetchApi(`/invoices/${editedInvoice.id}`, { method: 'PUT', body: editedInvoice });
       const updated = updatedResponse.invoice || updatedResponse;
       setInvoices(prev => prev.map(inv => inv.id === updated.id ? updated : inv));
       setIsEditMode(false);
@@ -348,7 +348,7 @@ export default function POInvoicePage() {
     try {
       const activeInv = invoices.find(inv => inv.id === activeInvoiceId);
       if (!activeInv) throw new Error('Active invoice not found');
-      const updatedResponse = await fetchApi(`/dashboard/update-invoice/${activeInvoiceId}`, {
+      const updatedResponse = await fetchApi(`/invoices/${activeInvoiceId}`, {
         method: 'PUT',
         body: { ...activeInv, status: newStatus }
       });

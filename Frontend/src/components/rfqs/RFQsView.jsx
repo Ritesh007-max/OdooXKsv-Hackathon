@@ -26,7 +26,7 @@ const RFQsView = ({ initialMode, clearInitialMode }) => {
   // Load RFQs from Backend
   const loadRfqs = () => {
     setLoading(true);
-    fetchApi('/dashboard/get-rfqs')
+    fetchApi('/rfqs')
       .then((data) => {
         setRfqs(data.rfqs || []);
         setLoading(false);
@@ -147,13 +147,13 @@ const RFQsView = ({ initialMode, clearInitialMode }) => {
 
     try {
       if (editingRfq) {
-        await fetchApi(`/dashboard/update-rfq/${editingRfq._id}`, {
+        await fetchApi(`/rfqs/${editingRfq._id}`, {
           method: 'PUT',
           body: payload
         });
         addActivity('rfq', `RFQ updated — ${payload.title}`, 'info');
       } else {
-        await fetchApi('/dashboard/add-rfq', {
+        await fetchApi('/rfqs', {
           method: 'POST',
           body: payload
         });
