@@ -4,6 +4,7 @@ import TopBar from './components/layout/TopBar';
 import DashboardView from './components/dashboard/DashboardView';
 import VendorsView from './components/vendors/VendorsView';
 import RFQsView from './components/rfqs/RFQsView';
+import POInvoicePage from './POInvoicePage';
 
 function App() {
   const [currentPath, setCurrentPath] = useState(() => {
@@ -33,8 +34,9 @@ function App() {
         {currentPath === 'dashboard' && <DashboardView onAddVendor={navigateToVendorsWithAdd} />}
         {currentPath === 'vendors' && <VendorsView openVendorModal={openVendorModal} setOpenVendorModal={setOpenVendorModal} />}
         {currentPath === 'rfqs' && <RFQsView />}
+        {currentPath === 'invoices' && <POInvoicePage />}
         
-        {currentPath !== 'dashboard' && currentPath !== 'vendors' && currentPath !== 'rfqs' && (
+        {currentPath !== 'dashboard' && currentPath !== 'vendors' && currentPath !== 'rfqs' && currentPath !== 'invoices' && (
           <main className="flex-1 overflow-y-auto p-6 flex flex-col items-center justify-center">
             <h2 className="text-headline text-gray-400">Page under construction</h2>
           </main>
