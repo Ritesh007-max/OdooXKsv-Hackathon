@@ -6,7 +6,7 @@ const RFQForm = ({ formData, setFormData }) => {
   };
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-2">
       <div>
         <label className="block text-caption font-sans font-semibold text-gray-700 mb-1">RFQ's title*</label>
         <input 
@@ -49,7 +49,7 @@ const RFQForm = ({ formData, setFormData }) => {
           value={formData.description}
           onChange={handleChange}
           placeholder="e.g. Ergonomic chairs and standing desks for 3rd floor"
-          rows={4}
+          rows={2}
           className="w-full bg-white border border-gray-300 rounded-md p-2 text-body font-sans focus:outline-none focus:border-gray-500 resize-none"
         />
       </div>

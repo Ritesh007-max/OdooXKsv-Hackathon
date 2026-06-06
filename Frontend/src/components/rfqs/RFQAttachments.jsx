@@ -44,7 +44,7 @@ const RFQAttachments = ({ attachments, setAttachments }) => {
         onClick={handleClick}
         onDragOver={handleDragOver}
         onDrop={handleDrop}
-        className="border-2 border-dashed border-gray-400 rounded-md p-8 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors"
+        className="border-2 border-dashed border-gray-400 rounded-md p-4 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors"
       >
         <span className="text-body font-sans text-gray-500">Drag & drop files or click to upload</span>
         <input 
