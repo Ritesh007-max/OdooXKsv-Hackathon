@@ -581,7 +581,7 @@ export default function POInvoicePage() {
   const currentStatusStyle = getStatusStyle(currentInvoiceData?.status || "Draft");
 
   return (
-    <div className="flex-1 bg-[#F3F4F6] text-[#111111] flex flex-col font-deck-body select-none overflow-hidden">
+    <div className="flex-1 bg-white text-[#111111] flex flex-col font-deck-body select-none overflow-hidden">
 
         {/* Role Bar & Utility Header (no-print) */}
         <header className="h-12 bg-white border-b border-[#E5E7EB] flex items-center justify-between px-6 text-xs no-print">
@@ -729,7 +729,7 @@ export default function POInvoicePage() {
           </section>
 
           {/* 3. Right Panel: Active PO & Invoice Sheet */}
-          <section className="flex-1 min-w-0 overflow-y-auto bg-[#F3F4F6] p-6 md:p-8 print-invoice-sheet">
+          <section className="flex-1 min-w-0 overflow-y-auto bg-white p-6 md:p-8 print-invoice-sheet">
 
             {/* Top breadcrumb & metadata (no-print) */}
             <div className="flex items-center justify-between text-xs text-[#6B7280] mb-4 no-print font-deck-code">
