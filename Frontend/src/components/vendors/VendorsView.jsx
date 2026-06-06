@@ -3,8 +3,10 @@ import VendorFilters from './VendorFilters';
 import VendorsTable from './VendorsTable';
 import Button from '../ui/Button';
 import { fetchApi } from '../../api';
+import { useActivity } from '../../ActivityContext';
 
 const VendorsView = ({ openVendorModal, setOpenVendorModal }) => {
+  const { addActivity } = useActivity();
   const [vendors, setVendors] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -59,6 +61,7 @@ const VendorsView = ({ openVendorModal, setOpenVendorModal }) => {
       body: newVendor
     })
       .then(() => {
+        addActivity('vendor', `Vendor added — ${newVendor.name} registered`, 'success');
         setIsAddModalOpen(false);
         setNewVendor({ name: '', category: '', gst: '', contact: '', status: 'Active' });
         loadVendors();
@@ -78,6 +81,7 @@ const VendorsView = ({ openVendorModal, setOpenVendorModal }) => {
       body: selectedVendor
     })
       .then(() => {
+        addActivity('vendor', `Vendor updated — ${selectedVendor.name} profile modified`, 'info');
         setSelectedVendor(null);
         loadVendors();
       })
@@ -94,6 +98,7 @@ const VendorsView = ({ openVendorModal, setOpenVendorModal }) => {
       method: 'DELETE'
     })
       .then(() => {
+        addActivity('vendor', `Vendor removed — Profile deleted`, 'pending');
         setSelectedVendor(null);
         loadVendors();
       })

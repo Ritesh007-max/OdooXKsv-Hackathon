@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const { Invoice } = require("../models");
 
 function mapLegacyInvoice(inv) {
@@ -75,8 +76,11 @@ async function addInvoice(data) {
   const discount = Math.max(0, data.discount || 0);
   const total = Math.max(0, amount + tax - discount);
   
+  const mongoose = require("mongoose");
+  const invoiceId = data.id || data.invoiceId || `INV-${new mongoose.Types.ObjectId().toString().substring(0, 8).toUpperCase()}`;
+
   const invoice = new Invoice({
-    invoiceId: data.id || data.invoiceId,
+    invoiceId,
     poId: data.poId || "Draft PO",
     amount,
     tax,
@@ -127,22 +131,25 @@ async function updateInvoice(id, data) {
     { new: true }
   ).then(doc => {
     if (doc) return doc;
-    return Invoice.findByIdAndUpdate(
-      id,
-      {
-        poId: data.poId,
-        amount,
-        tax,
-        total,
-        vendor: data.vendor,
-        items: data.items,
-        status: data.status,
-        dates: data.dates,
-        discount,
-        logs: data.logs
-      },
-      { new: true }
-    );
+    if (mongoose.Types.ObjectId.isValid(id)) {
+      return Invoice.findByIdAndUpdate(
+        id,
+        {
+          poId: data.poId,
+          amount,
+          tax,
+          total,
+          vendor: data.vendor,
+          items: data.items,
+          status: data.status,
+          dates: data.dates,
+          discount,
+          logs: data.logs
+        },
+        { new: true }
+      );
+    }
+    throw new Error('Invoice not found');
   });
 }
 
