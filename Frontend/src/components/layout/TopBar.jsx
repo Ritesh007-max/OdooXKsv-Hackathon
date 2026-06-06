@@ -61,9 +61,7 @@ const TopBar = () => {
   return (
     <header className="no-print h-14 bg-white border-b border-gray-200 flex items-center justify-between px-6 shrink-0 shadow-sm z-50">
       <div className="flex items-center gap-2">
-        <div className="h-7 w-7 rounded bg-[#F59E0B] flex items-center justify-center">
-          <span className="font-mono font-bold text-sm text-[#111111]">VB</span>
-        </div>
+        <img src="/logo.png" alt="VendorBridge Logo" className="w-8 h-8 rounded-md object-contain" />
         <span className="font-sans font-bold text-[18px] text-gray-900 tracking-tight">VendorBridge</span>
       </div>
 

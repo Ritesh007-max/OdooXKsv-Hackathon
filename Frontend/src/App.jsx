@@ -13,11 +13,12 @@ import ReportsView from './components/dashboard/ReportsView';
 import ActivityView from './components/dashboard/ActivityView';
 import QuotationsModule from './components/quotations/QuotationsModule';
 import ApprovalWorkflowView from './components/approvals/ApprovalWorkflowView';
+import LandingPage from './components/landing/LandingPage';
 
 function MainApp() {
   const [currentPath, setCurrentPath] = useState(() => {
     const saved = localStorage.getItem('vendorBridge_currentPath');
-    return saved || 'dashboard';
+    return saved || 'landing';
   });
   const [openVendorModal, setOpenVendorModal] = useState(false);
   const [rfqInitialMode, setRfqInitialMode] = useState(null);
@@ -47,6 +48,10 @@ function MainApp() {
     setRfqInitialMode('create');
     setCurrentPath('rfqs');
   };
+
+  if (currentPath === 'landing') {
+    return <LandingPage onLogin={() => setCurrentPath('dashboard')} />;
+  }
 
   return (
     <div className="h-screen w-full flex flex-col bg-background text-gray-900 font-sans overflow-hidden">
