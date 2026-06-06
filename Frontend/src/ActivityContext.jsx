@@ -14,7 +14,6 @@ export function ActivityProvider({ children }) {
     }
   });
 
-  // Persist to localStorage whenever activities change
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(activities.slice(0, 200)));
   }, [activities]);
