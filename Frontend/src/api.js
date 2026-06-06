@@ -7,6 +7,11 @@ export async function fetchApi(path, options = {}) {
     ...options.headers,
   };
 
+  const token = localStorage.getItem('vendorBridge_token');
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
   const response = await fetch(url, {
     ...options,
     headers,
@@ -15,7 +20,16 @@ export async function fetchApi(path, options = {}) {
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(`API Error: ${response.status} - ${errorText || response.statusText}`);
+    let errorMessage = errorText || response.statusText;
+    try {
+      const parsed = JSON.parse(errorText);
+      if (parsed && parsed.message) {
+        errorMessage = parsed.message;
+      }
+    } catch (e) {
+      // Keep original errorText if JSON parsing fails
+    }
+    throw new Error(errorMessage);
   }
 
   return response.json();

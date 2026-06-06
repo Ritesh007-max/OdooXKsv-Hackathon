@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { fetchApi } from './api';
 import { useActivity } from './ActivityContext';
+import { useAuth } from './AuthContext';
 
 const navIcons = {
   Dashboard: (
@@ -51,9 +52,31 @@ const navIcons = {
 };
 
 export default function POInvoicePage() {
+  const { user } = useAuth();
+  
+  const mapDbRoleToAppRole = (dbRole) => {
+    switch (dbRole) {
+      case 'admin': return 'Admin';
+      case 'officer': return 'Procurement Officer';
+      case 'manager': return 'Manager / Approver';
+      case 'vendor': return 'Vendor';
+      default: return 'Vendor';
+    }
+  };
+
   // Application Roles
   const roles = ["Procurement Officer", "Vendor", "Manager / Approver", "Admin"];
-  const [currentRole, setCurrentRole] = useState("Admin");
+  const [currentRole, setCurrentRole] = useState(() => {
+    return user ? mapDbRoleToAppRole(user.role) : "Admin";
+  });
+
+  // Automatically update role if user changes
+  useEffect(() => {
+    if (user) {
+      setCurrentRole(mapDbRoleToAppRole(user.role));
+    }
+  }, [user]);
+
   const { addActivity } = useActivity();
 
   // Invoices Master State — loaded from backend API
@@ -484,7 +507,9 @@ export default function POInvoicePage() {
         <header className="h-12 bg-white border-b border-[#E5E7EB] flex items-center justify-between px-6 text-xs no-print">
           <div className="flex items-center gap-2">
             <span className="text-[#6B7280] font-deck-caption">USER SESSION:</span>
-            <span className="font-deck-code text-[#F59E0B]">Procurement_Officer_GSSoC</span>
+            <span className="font-deck-code text-[#F59E0B]">
+              {user ? user.name.replace(/\s+/g, '_') : 'Procurement_Officer_GSSoC'}
+            </span>
           </div>
 
           <div className="flex items-center gap-3">

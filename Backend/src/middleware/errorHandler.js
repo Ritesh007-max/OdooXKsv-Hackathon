@@ -4,7 +4,7 @@ function notFound(req, res, next) {
 
 function errorHandler(err, req, res, next) {
   console.error("[Error]", err);
-  const status = err.statusCode || 500;
+  const status = err.statusCode || err.status || 500;
   const message = err.message || "Internal Server Error";
   res.status(status).json({ message });
 }
