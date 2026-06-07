@@ -1,6 +1,7 @@
 const express = require("express");
 const {
   getVendors,
+  getVendorById,
   addVendor,
   updateVendor,
   deleteVendor,
@@ -10,8 +11,9 @@ const { restrictTo } = require("../middleware/authMiddleware");
 const router = express.Router();
 
 router.get("/", getVendors);
-router.post("/", restrictTo("admin", "officer"), addVendor);
-router.put("/:id", restrictTo("admin", "officer"), updateVendor);
-router.delete("/:id", restrictTo("admin", "officer"), deleteVendor);
+router.get("/:id", getVendorById);
+router.post("/", restrictTo("admin", "officer", "vendor", "manager"), addVendor);
+router.put("/:id", restrictTo("admin", "officer", "vendor", "manager"), updateVendor);
+router.delete("/:id", restrictTo("admin", "officer", "manager"), deleteVendor);
 
 module.exports = router;

@@ -10,9 +10,9 @@ const router = express.Router();
 
 // All authenticated users can view invoices
 router.get("/", getInvoices);
-// Vendors can submit, officers and admins can create invoices
-router.post("/", restrictTo("admin", "officer", "vendor"), addInvoice);
-// Only officers and admins can update invoice status
-router.put("/:id", restrictTo("admin", "officer"), updateInvoice);
+// Vendors can submit, officers, managers and admins can create invoices
+router.post("/", restrictTo("admin", "officer", "manager", "vendor"), addInvoice);
+// Only officers, managers and admins can update invoice status
+router.put("/:id", restrictTo("admin", "officer", "manager"), updateInvoice);
 
 module.exports = router;

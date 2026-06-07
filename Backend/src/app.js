@@ -16,6 +16,6 @@ app.use(express.json());
 app.use("/api", routes);
 
 app.use(notFound);
-app.use(errorHandler);
+app.use(errorHandler);``
 
 module.exports = app;
