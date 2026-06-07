@@ -8,8 +8,10 @@ const { restrictTo } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
+// All authenticated users can view RFQs
 router.get("/", getRfqs);
-router.post("/", restrictTo("admin", "officer"), addRfq);
-router.put("/:id", restrictTo("admin", "officer"), updateRfq);
+// Only officers, managers and admins can create or modify RFQs
+router.post("/", restrictTo("admin", "officer", "manager"), addRfq);
+router.put("/:id", restrictTo("admin", "officer", "manager"), updateRfq);
 
 module.exports = router;
